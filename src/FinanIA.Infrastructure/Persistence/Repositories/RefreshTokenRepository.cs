@@ -15,6 +15,9 @@ public class RefreshTokenRepository : IRefreshTokenRepository
 
     public async Task<RefreshToken?> GetActiveByUserIdAsync(Guid userId, CancellationToken ct = default)
     {
+        if (userId == Guid.Empty)
+            throw new ArgumentException("userId cannot be empty.", nameof(userId));
+
         return await _context.RefreshTokens
             .Where(t => t.UserId == userId && t.RevokedAt == null && t.ExpiresAt > DateTime.UtcNow)
             .FirstOrDefaultAsync(ct);
@@ -34,6 +37,9 @@ public class RefreshTokenRepository : IRefreshTokenRepository
 
     public async Task RevokeAllByUserIdAsync(Guid userId, CancellationToken ct = default)
     {
+        if (userId == Guid.Empty)
+            throw new ArgumentException("userId cannot be empty.", nameof(userId));
+
         var tokens = await _context.RefreshTokens
             .Where(t => t.UserId == userId && t.RevokedAt == null)
             .ToListAsync(ct);
