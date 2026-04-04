@@ -27,6 +27,10 @@ public class ExceptionHandlingMiddleware
         {
             await WriteValidationErrorResponseAsync(context, ex);
         }
+        catch (UnauthorizedAccessException ex)
+        {
+            await WriteUnauthorizedResponseAsync(context, ex.Message);
+        }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Unhandled exception occurred.");
@@ -50,6 +54,28 @@ public class ExceptionHandlingMiddleware
             Type = "https://tools.ietf.org/html/rfc7807",
             Title = "Erro de validação",
             Status = StatusCodes.Status400BadRequest,
+            Instance = context.Request.Path
+        };
+
+        var json = JsonSerializer.Serialize(problem, new JsonSerializerOptions
+        {
+            PropertyNamingPolicy = JsonNamingPolicy.CamelCase
+        });
+
+        await context.Response.WriteAsync(json);
+    }
+
+    private static async Task WriteUnauthorizedResponseAsync(HttpContext context, string detail)
+    {
+        context.Response.ContentType = "application/problem+json";
+        context.Response.StatusCode = StatusCodes.Status401Unauthorized;
+
+        var problem = new ProblemDetails
+        {
+            Type = "https://tools.ietf.org/html/rfc7807",
+            Title = "Credenciais inválidas",
+            Status = StatusCodes.Status401Unauthorized,
+            Detail = detail,
             Instance = context.Request.Path
         };
 
