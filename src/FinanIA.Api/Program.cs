@@ -77,6 +77,7 @@ builder.Services.AddValidatorsFromAssemblyContaining<RegisterUserCommandHandler>
 builder.Services.AddScoped<RegisterUserCommandHandler>();
 builder.Services.AddScoped<LoginCommandHandler>();
 builder.Services.AddScoped<RefreshTokenCommandHandler>();
+builder.Services.AddScoped<LogoutCommandHandler>();
 
 // Controllers
 builder.Services.AddControllers();

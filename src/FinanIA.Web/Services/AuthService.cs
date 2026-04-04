@@ -90,6 +90,14 @@ public class AuthService
 
     public async Task LogoutAsync()
     {
+        if (!string.IsNullOrEmpty(_accessToken))
+        {
+            var request = new HttpRequestMessage(HttpMethod.Post, "api/auth/logout");
+            request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", _accessToken);
+            // Best-effort: ignore server errors — tokens are cleared locally regardless
+            await _http.SendAsync(request);
+        }
+
         await ClearTokensAsync();
         _navigationManager.NavigateTo("/login");
     }
