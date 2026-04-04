@@ -1,0 +1,15 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/FinanIA.Api/FinanIA.Api.csproj" />
+    <Project Path="src/FinanIA.Application/FinanIA.Application.csproj" />
+    <Project Path="src/FinanIA.Domain/FinanIA.Domain.csproj" />
+    <Project Path="src/FinanIA.Infrastructure/FinanIA.Infrastructure.csproj" />
+    <Project Path="src/FinanIA.Web/FinanIA.Web.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/FinanIA.Api.Tests/FinanIA.Api.Tests.csproj" />
+    <Project Path="tests/FinanIA.Application.Tests/FinanIA.Application.Tests.csproj" />
+    <Project Path="tests/FinanIA.Domain.Tests/FinanIA.Domain.Tests.csproj" />
+    <Project Path="tests/FinanIA.Infrastructure.Tests/FinanIA.Infrastructure.Tests.csproj" />
+  </Folder>
+</Solution>
