@@ -1,0 +1,67 @@
+@page "/login"
+@using System.ComponentModel.DataAnnotations
+@using FinanIA.Web.Services
+@inject AuthService AuthService
+
+<PageTitle>Entrar</PageTitle>
+
+<h1>Entrar</h1>
+
+<EditForm Model="@_model" OnValidSubmit="HandleValidSubmit">
+    <DataAnnotationsValidator />
+
+    <div class="mb-3">
+        <label for="email" class="form-label">E-mail</label>
+        <InputText id="email" class="form-control" @bind-Value="_model.Email" />
+        <ValidationMessage For="() => _model.Email" />
+    </div>
+
+    <div class="mb-3">
+        <label for="password" class="form-label">Senha</label>
+        <InputText id="password" type="password" class="form-control" @bind-Value="_model.Password" />
+        <ValidationMessage For="() => _model.Password" />
+    </div>
+
+    @if (!string.IsNullOrEmpty(_errorMessage))
+    {
+        <div class="alert alert-danger" role="alert">@_errorMessage</div>
+    }
+
+    <button type="submit" class="btn btn-primary" disabled="@_isLoading">
+        @(_isLoading ? "Aguarde..." : "Entrar")
+    </button>
+</EditForm>
+
+<p class="mt-3">
+    Não tem conta? <a href="/register">Criar conta</a>
+</p>
+
+@code {
+    private readonly LoginModel _model = new();
+    private string? _errorMessage;
+    private bool _isLoading;
+
+    private async Task HandleValidSubmit()
+    {
+        _isLoading = true;
+        _errorMessage = null;
+
+        var (success, error) = await AuthService.LoginAsync(_model.Email, _model.Password);
+
+        if (!success)
+        {
+            _errorMessage = error ?? "E-mail ou senha incorretos.";
+            _isLoading = false;
+        }
+    }
+
+    private sealed class LoginModel
+    {
+        [Required(ErrorMessage = "E-mail é obrigatório.")]
+        [EmailAddress(ErrorMessage = "Formato de e-mail inválido.")]
+        public string Email { get; set; } = string.Empty;
+
+        [Required(ErrorMessage = "Senha é obrigatória.")]
+        public string Password { get; set; } = string.Empty;
+    }
+}
