@@ -1,7 +1,8 @@
-using System.IdentityModel.Tokens.Jwt;
 using FinanIA.Application.Auth.Commands;
 using FinanIA.Application.Auth.DTOs;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using System.IdentityModel.Tokens.Jwt;
 
 namespace FinanIA.Api.Controllers;
 
@@ -43,41 +44,21 @@ public class AuthController : ControllerBase
         return Ok(response);
     }
 
+    // UserId is extracted exclusively from the validated JWT sub claim via [Authorize].
+    // It is never accepted from the request body to prevent privilege escalation.
+    [Authorize]
     [HttpPost("refresh")]
     [ProducesResponseType<AuthResponse>(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     public async Task<IActionResult> Refresh([FromBody] RefreshRequest request, CancellationToken ct)
     {
-        var userId = ExtractUserIdFromBearer();
-        if (userId == Guid.Empty)
+        var sub = User.FindFirst(JwtRegisteredClaimNames.Sub)?.Value;
+        if (!Guid.TryParse(sub, out var userId))
             return Unauthorized();
 
         var command = new RefreshTokenCommand(userId, request.RefreshToken);
         var response = await _refreshTokenHandler.HandleAsync(command, ct);
         return Ok(response);
-    }
-
-    private Guid ExtractUserIdFromBearer()
-    {
-        var authHeader = HttpContext.Request.Headers.Authorization.FirstOrDefault();
-        if (string.IsNullOrEmpty(authHeader) || !authHeader.StartsWith("Bearer ", StringComparison.OrdinalIgnoreCase))
-            return Guid.Empty;
-
-        var token = authHeader["Bearer ".Length..].Trim();
-        try
-        {
-            var handler = new JwtSecurityTokenHandler();
-            if (!handler.CanReadToken(token))
-                return Guid.Empty;
-
-            var jwtToken = handler.ReadJwtToken(token);
-            var sub = jwtToken.Claims.FirstOrDefault(c => c.Type == JwtRegisteredClaimNames.Sub)?.Value;
-            return Guid.TryParse(sub, out var userId) ? userId : Guid.Empty;
-        }
-        catch
-        {
-            return Guid.Empty;
-        }
     }
 }
 
