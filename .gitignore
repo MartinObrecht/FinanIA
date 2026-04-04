@@ -483,7 +483,4 @@ $RECYCLE.BIN/
 
 # Project documentation and tooling (not versioned)
 specs/
-StakeholderDocuments/
-.specify/
-.github/
 .vscode/
