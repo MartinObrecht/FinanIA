@@ -1,0 +1,74 @@
+@page "/register"
+@using System.ComponentModel.DataAnnotations
+@using FinanIA.Web.Services
+@inject AuthService AuthService
+
+<PageTitle>Criar Conta</PageTitle>
+
+<h1>Criar Conta</h1>
+
+<EditForm Model="@_model" OnValidSubmit="HandleValidSubmit">
+    <DataAnnotationsValidator />
+
+    <div class="mb-3">
+        <label for="email" class="form-label">E-mail</label>
+        <InputText id="email" class="form-control" @bind-Value="_model.Email" />
+        <ValidationMessage For="() => _model.Email" />
+    </div>
+
+    <div class="mb-3">
+        <label for="password" class="form-label">Senha</label>
+        <InputText id="password" type="password" class="form-control" @bind-Value="_model.Password" />
+        <ValidationMessage For="() => _model.Password" />
+    </div>
+
+    <div class="mb-3">
+        <label for="confirmPassword" class="form-label">Confirmar Senha</label>
+        <InputText id="confirmPassword" type="password" class="form-control" @bind-Value="_model.ConfirmPassword" />
+        <ValidationMessage For="() => _model.ConfirmPassword" />
+    </div>
+
+    @if (!string.IsNullOrEmpty(_errorMessage))
+    {
+        <div class="alert alert-danger" role="alert">@_errorMessage</div>
+    }
+
+    <button type="submit" class="btn btn-primary" disabled="@_isLoading">
+        @(_isLoading ? "Aguarde..." : "Criar Conta")
+    </button>
+</EditForm>
+
+@code {
+    private readonly RegisterModel _model = new();
+    private string? _errorMessage;
+    private bool _isLoading;
+
+    private async Task HandleValidSubmit()
+    {
+        _isLoading = true;
+        _errorMessage = null;
+
+        var (success, error) = await AuthService.RegisterAsync(_model.Email, _model.Password);
+
+        if (!success)
+        {
+            _errorMessage = error;
+            _isLoading = false;
+        }
+    }
+
+    private sealed class RegisterModel
+    {
+        [Required(ErrorMessage = "E-mail é obrigatório.")]
+        [EmailAddress(ErrorMessage = "Formato de e-mail inválido.")]
+        public string Email { get; set; } = string.Empty;
+
+        [Required(ErrorMessage = "Senha é obrigatória.")]
+        [MinLength(6, ErrorMessage = "A senha deve ter no mínimo 6 caracteres.")]
+        public string Password { get; set; } = string.Empty;
+
+        [Required(ErrorMessage = "Confirmação de senha é obrigatória.")]
+        [Compare(nameof(Password), ErrorMessage = "As senhas não coincidem.")]
+        public string ConfirmPassword { get; set; } = string.Empty;
+    }
+}
