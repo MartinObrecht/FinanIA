@@ -1,6 +1,8 @@
 using System.Text;
 using FinanIA.Api.Middleware;
+using Scalar.AspNetCore;
 using FinanIA.Application.Auth;
+using FinanIA.Application.Auth.Commands;
 using FinanIA.Domain.Interfaces;
 using FinanIA.Infrastructure.Auth;
 using FinanIA.Infrastructure.Persistence;
@@ -67,9 +69,16 @@ builder.Services.AddCors(options =>
 // FluentValidation
 builder.Services.AddFluentValidationAutoValidation();
 builder.Services.AddValidatorsFromAssemblyContaining<Program>();
+builder.Services.AddValidatorsFromAssemblyContaining<RegisterUserCommandHandler>();
+
+// Command handlers
+builder.Services.AddScoped<RegisterUserCommandHandler>();
 
 // Controllers
 builder.Services.AddControllers();
+
+// OpenAPI
+builder.Services.AddOpenApi();
 
 var app = builder.Build();
 
@@ -79,6 +88,10 @@ using (var scope = app.Services.CreateScope())
     var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
     await db.Database.MigrateAsync();
 }
+
+// OpenAPI / Scalar UI
+app.MapOpenApi();
+app.MapScalarApiReference();
 
 // Middleware
 app.UseMiddleware<ExceptionHandlingMiddleware>();
@@ -90,3 +103,6 @@ app.UseAuthorization();
 app.MapControllers();
 
 app.Run();
+
+// Required for WebApplicationFactory in integration tests
+public partial class Program { }
