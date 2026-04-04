@@ -6,6 +6,7 @@ using FinanIA.Domain.Interfaces;
 using FluentAssertions;
 using FluentValidation;
 using FluentValidation.Results;
+using Microsoft.Extensions.Logging;
 using NSubstitute;
 
 namespace FinanIA.Application.Tests.Auth;
@@ -29,7 +30,8 @@ public class RegisterUserCommandHandlerTests
             _userRepository,
             _refreshTokenRepository,
             _jwtTokenService,
-            _validator);
+            _validator,
+            Substitute.For<ILogger<RegisterUserCommandHandler>>());
     }
 
     [Fact]

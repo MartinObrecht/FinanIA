@@ -1,6 +1,7 @@
 using FinanIA.Application.Auth.Commands;
 using FinanIA.Domain.Interfaces;
 using FluentAssertions;
+using Microsoft.Extensions.Logging;
 using NSubstitute;
 
 namespace FinanIA.Application.Tests.Auth;
@@ -13,7 +14,9 @@ public class LogoutCommandHandlerTests
     public LogoutCommandHandlerTests()
     {
         _refreshTokenRepository = Substitute.For<IRefreshTokenRepository>();
-        _handler = new LogoutCommandHandler(_refreshTokenRepository);
+        _handler = new LogoutCommandHandler(
+            _refreshTokenRepository,
+            Substitute.For<ILogger<LogoutCommandHandler>>());
     }
 
     [Fact]

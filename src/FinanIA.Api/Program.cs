@@ -82,6 +82,10 @@ builder.Services.AddScoped<LogoutCommandHandler>();
 // Controllers
 builder.Services.AddControllers();
 
+// Health checks
+builder.Services.AddHealthChecks()
+    .AddDbContextCheck<AppDbContext>("database");
+
 // OpenAPI
 builder.Services.AddOpenApi();
 
@@ -106,6 +110,8 @@ app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();
+
+app.MapHealthChecks("/health");
 
 app.Run();
 
