@@ -1,31 +1,27 @@
 <!--
 SYNC IMPACT REPORT
 ==================
-Version change: 1.1.0 → 1.2.0
-Bump rationale: MINOR — Principle II materially expanded to be multi-provider AI; Ollama/Llama 3
-  added as first-class local AI provider alongside Gemini to address cost management concerns.
-  Principle IV example updated to include Ollama explicitly. Dev Workflow AI prompt review
-  generalized to cover all providers.
+Version change: 1.2.0 → 1.3.0
+Bump rationale: MINOR — Principle II reverted from multi-provider AI to Gemini-only;
+  Ollama/Llama 3 local provider removed (feature 004-ollama-provider não adotada).
+  Principles III and IV provider references updated accordingly.
+  Dev Workflow prompt review line simplified.
 
 Modified principles:
-  - Principle II: Generalized from Gemini-specific assistant to provider-agnostic multi-model
-    AI assistant; Ollama/Llama 3 (local) added as supported provider; provider selection policy
-    (configuration-driven, Gemini as cloud default, Ollama as local/dev/cost option) added.
-  - Principle III: "Gemini API" reference in integration test bullet generalized to
-    "provedores de IA (Gemini, Ollama)".
-  - Principle IV: Updated provider swap example to name Ollama/Llama 3 explicitly;
-    "Gemini API" in external dependencies bullet generalized to "provedores de IA".
+  - Principle II: Revertido para provedor único (Gemini); opção Ollama/Llama 3, política de
+    seleção de provedor e diretriz de controle de custo removidas.
+  - Principle III: Referência "(Gemini, Ollama)" revertida para "(Gemini)".
+  - Principle IV: Exemplo de troca de provedor simplificado; referência a Ollama/Llama 3 removida.
 
 Added sections: none
 Removed sections: none
 
 Templates alignment:
-  ✅ plan-template.md     — "Constitution Check" gate aligns with principles I–VI (no Gemini refs)
-  ✅ spec-template.md     — Security, IA behavior and test requirements generic; no change needed
-  ✅ tasks-template.md    — TDD phase structure aligns with Principle III; no provider-specific refs
-  ✅ agent-file-template  — No outdated CLAUDE-only or Gemini-only references detected
-  ✅ StakeholderDocuments/TechStack.md — Updated to reflect multi-provider AI support
-    (Gemini cloud default + Ollama/Llama 3 local alternative)
+  ✅ plan-template.md     — Nenhuma alteração necessária; gate Constitution Check inalterado
+  ✅ spec-template.md     — Nenhuma alteração necessária
+  ✅ tasks-template.md    — Nenhuma alteração necessária
+  ✅ .github/copilot-instructions.md — Entrada OllamaSharp / 004-ollama-provider removida
+  ✅ StakeholderDocuments/TechStack.md — Revertido para provedor único (Gemini)
 
 Deferred TODOs: none
 -->
@@ -60,19 +56,11 @@ independentemente do provedor de modelo utilizado.
   profissional.
 - Prompts enviados ao provedor de IA DEVEM ser sanitizados para prevenir prompt injection.
 - O histórico de conversas DEVE ser isolado por usuário e criptografado em repouso.
-- O provedor de IA DEVE ser selecionável por configuração (`appsettings.json` /
-  variáveis de ambiente); provedores suportados:
-  - **Gemini** (Google): provedor padrão de produção, via `Mscc.GenerativeAI.Microsoft`.
-  - **Ollama/Llama 3** (local): provedor alternativo para desenvolvimento local e cenários
-    sensíveis a custo, via `OllamaSharp` + `Microsoft.Extensions.AI`.
-- A troca de provedor NUNCA DEVE exigir código novo no domínio ou na camada de aplicação;
-  DEVE ser transparente para os use cases.
-- Custos de inferência DEVEM ser considerados no design: Ollama DEVE ser o padrão
-  para ambientes de desenvolvimento (`ASPNETCORE_ENVIRONMENT=Development`).
+- O provedor de IA é **Gemini** (Google), via `Mscc.GenerativeAI.Microsoft`; futuras trocas
+  de provedor NUNCA DEVEM exigir alterações no domínio ou na camada de aplicação.
 
 **Rationale**: Dados financeiros incorretos ou de outros usuários podem causar decisões
-prejudiciais; a responsabilidade ética e legal exige rastreabilidade e disclaimers. O suporte a
-provedores locais (Ollama) reduz custos operacionais sem comprometer isolamento ou segurança.
+prejudiciais; a responsabilidade ética e legal exige rastreabilidade e disclaimers.
 
 ### III. Test-First (NÃO NEGOCIÁVEL)
 
@@ -81,7 +69,7 @@ TDD é obrigatório em todo código de domínio e de integração.
 - O ciclo DEVE ser: Testes escritos → Revisão/aprovação → Testes vermelhos → Implementação →
   Verde → Refatoração.
 - Nenhuma funcionalidade de domínio PODE ser entregue sem cobertura de testes unitários.
-- Integrações com provedores de IA (Gemini, Ollama) e banco de dados DEVEM ter testes de
+- Integrações com o provedor de IA (Gemini) e banco de dados DEVEM ter testes de
   integração ou de contrato.
 - A cobertura mínima de linhas no domínio DEVE ser ≥ 80 %.
 - Testes DEVEM ser determinísticos; dependências externas DEVEM ser mockadas nos testes unitários.
@@ -94,7 +82,7 @@ comportamento esperado é documentado como código executável antes da entrega.
 O domínio financeiro DEVE ser independente de frameworks, IA e infraestrutura (Clean Architecture).
 
 - Camadas DEVEM respeitar a dependência invertida: Domínio → Aplicação → Infraestrutura/UI.
-- Mudanças no provedor de IA (ex.: trocar Gemini por Ollama/Llama 3 ou outro modelo) ou no
+- Mudanças no provedor de IA ou no
   banco de dados NÃO DEVEM requerer alterações no domínio.
 - Dependências externas (provedores de IA, EF Core, repositórios) DEVEM ser abstraídas por interfaces
   definidas no domínio.
@@ -159,8 +147,8 @@ obscurece o domínio de negócio.
   (ex.: SonarQube, Roslyn Analyzers) e auditoria de vulnerabilidades antes do merge.
 - **Migrações**: Toda alteração de schema DEVE incluir migration versionada; rollback DEVE ser
   testado localmente antes do merge.
-- **Revisão de IA prompts**: Mudanças nos prompts enviados ao provedor de IA (Gemini, Ollama,
-  etc.) DEVEM ser revisadas como código e testadas com cenários de prompt injection.
+- **Revisão de IA prompts**: Mudanças nos prompts enviados ao provedor de IA (Gemini) DEVEM
+  ser revisadas como código e testadas com cenários de prompt injection.
 - **ADRs**: Decisões arquiteturais significativas DEVEM ser documentadas em `docs/adr/` antes
   da implementação.
 
@@ -181,4 +169,4 @@ a constituição prevalece.
 - **Guidance file**: O arquivo `.specify/memory/constitution.md` é o documento vigente; versões
   anteriores são preservadas no histórico do Git.
 
-**Version**: 1.2.0 | **Ratified**: 2026-04-04 | **Last Amended**: 2026-04-05
+**Version**: 1.3.0 | **Ratified**: 2026-04-04 | **Last Amended**: 2026-04-05
