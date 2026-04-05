@@ -13,7 +13,9 @@ using FluentValidation;
 using FluentValidation.AspNetCore;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.AI;
 using Microsoft.IdentityModel.Tokens;
+using Mscc.GenerativeAI.Microsoft;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -86,6 +88,15 @@ builder.Services.AddScoped<UpdateTransactionCommandHandler>();
 builder.Services.AddScoped<DeleteTransactionCommandHandler>();
 builder.Services.AddScoped<GetTransactionsQueryHandler>();
 builder.Services.AddScoped<GetBalanceQueryHandler>();
+
+// Gemini IChatClient
+var geminiApiKey = builder.Configuration["Gemini:ApiKey"]
+    ?? throw new InvalidOperationException("Gemini API key is not configured. Set 'Gemini:ApiKey' via dotnet user-secrets or environment variables.");
+builder.Services.AddSingleton<IChatClient>(sp =>
+    new GeminiChatClient(apiKey: geminiApiKey, model: "gemini-2.5-flash")
+        .AsBuilder()
+        .UseFunctionInvocation(configure: client => client.MaximumIterationsPerRequest = 5)
+        .Build(sp));
 
 // Controllers
 builder.Services.AddControllers()
