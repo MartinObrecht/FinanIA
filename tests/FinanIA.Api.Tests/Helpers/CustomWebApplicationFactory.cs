@@ -17,6 +17,7 @@ public class CustomWebApplicationFactory : WebApplicationFactory<Program>, IAsyn
         Environment.SetEnvironmentVariable("JWT__Issuer", "test-issuer");
         Environment.SetEnvironmentVariable("JWT__Audience", "test-audience");
         Environment.SetEnvironmentVariable("CORS__AllowedOrigin", "http://localhost:3000");
+        Environment.SetEnvironmentVariable("Gemini__ApiKey", "test-gemini-api-key-placeholder");
     }
 
     protected override void ConfigureWebHost(IWebHostBuilder builder)
@@ -36,6 +37,7 @@ public class CustomWebApplicationFactory : WebApplicationFactory<Program>, IAsyn
         Environment.SetEnvironmentVariable("JWT__Issuer", null);
         Environment.SetEnvironmentVariable("JWT__Audience", null);
         Environment.SetEnvironmentVariable("CORS__AllowedOrigin", null);
+        Environment.SetEnvironmentVariable("Gemini__ApiKey", null);
 
         if (File.Exists(_dbPath))
             File.Delete(_dbPath);
