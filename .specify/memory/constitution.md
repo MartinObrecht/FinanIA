@@ -1,23 +1,31 @@
 <!--
 SYNC IMPACT REPORT
 ==================
-Version change: 1.0.0 → 1.1.0
-Bump rationale: MINOR — Principle IV expanded with frontend project (FinanIA.Web) and src/ path
-  convention; material structural guidance added.
+Version change: 1.1.0 → 1.2.0
+Bump rationale: MINOR — Principle II materially expanded to be multi-provider AI; Ollama/Llama 3
+  added as first-class local AI provider alongside Gemini to address cost management concerns.
+  Principle IV example updated to include Ollama explicitly. Dev Workflow AI prompt review
+  generalized to cover all providers.
 
 Modified principles:
-  - Principle IV: added FinanIA.Web (Blazor WebAssembly UI) to solution project list;
-    added src/ directory convention reference.
+  - Principle II: Generalized from Gemini-specific assistant to provider-agnostic multi-model
+    AI assistant; Ollama/Llama 3 (local) added as supported provider; provider selection policy
+    (configuration-driven, Gemini as cloud default, Ollama as local/dev/cost option) added.
+  - Principle III: "Gemini API" reference in integration test bullet generalized to
+    "provedores de IA (Gemini, Ollama)".
+  - Principle IV: Updated provider swap example to name Ollama/Llama 3 explicitly;
+    "Gemini API" in external dependencies bullet generalized to "provedores de IA".
 
 Added sections: none
 Removed sections: none
 
 Templates alignment:
-  ✅ plan-template.md     — "Constitution Check" gate aligns with principles I–VI
-  ✅ spec-template.md     — Security, IA behavior and test requirements reflected in user stories
-  ✅ tasks-template.md    — TDD phase structure aligns with Principle III; security tasks with Principle I
-  ✅ agent-file-template  — No outdated CLAUDE-only references detected
-  ✅ StakeholderDocuments/TechStack.md — FinanIA.Web and src/ convention now consistent with constitution
+  ✅ plan-template.md     — "Constitution Check" gate aligns with principles I–VI (no Gemini refs)
+  ✅ spec-template.md     — Security, IA behavior and test requirements generic; no change needed
+  ✅ tasks-template.md    — TDD phase structure aligns with Principle III; no provider-specific refs
+  ✅ agent-file-template  — No outdated CLAUDE-only or Gemini-only references detected
+  ✅ StakeholderDocuments/TechStack.md — Updated to reflect multi-provider AI support
+    (Gemini cloud default + Ollama/Llama 3 local alternative)
 
 Deferred TODOs: none
 -->
@@ -42,18 +50,29 @@ destroem a confiança no produto de forma irreversível.
 
 ### II. IA Contextualizada e Responsável (NÃO NEGOCIÁVEL)
 
-O assistente Gemini DEVE operar exclusivamente sobre os dados financeiros do usuário autenticado.
+O assistente de IA DEVE operar exclusivamente sobre os dados financeiros do usuário autenticado,
+independentemente do provedor de modelo utilizado.
 
 - O modelo NUNCA recebe dados de outros usuários no contexto de uma requisição.
 - Respostas da IA DEVEM ser fundamentadas nos dados reais do usuário; especulações ou
   conteúdo financeiro genérico não baseado nos dados do usuário são proibidos.
 - Toda resposta DEVE incluir um aviso claro de que não substitui aconselhamento financeiro
   profissional.
-- Prompts enviados ao Gemini DEVEM ser sanitizados para prevenir prompt injection.
+- Prompts enviados ao provedor de IA DEVEM ser sanitizados para prevenir prompt injection.
 - O histórico de conversas DEVE ser isolado por usuário e criptografado em repouso.
+- O provedor de IA DEVE ser selecionável por configuração (`appsettings.json` /
+  variáveis de ambiente); provedores suportados:
+  - **Gemini** (Google): provedor padrão de produção, via `Mscc.GenerativeAI.Microsoft`.
+  - **Ollama/Llama 3** (local): provedor alternativo para desenvolvimento local e cenários
+    sensíveis a custo, via `OllamaSharp` + `Microsoft.Extensions.AI`.
+- A troca de provedor NUNCA DEVE exigir código novo no domínio ou na camada de aplicação;
+  DEVE ser transparente para os use cases.
+- Custos de inferência DEVEM ser considerados no design: Ollama DEVE ser o padrão
+  para ambientes de desenvolvimento (`ASPNETCORE_ENVIRONMENT=Development`).
 
 **Rationale**: Dados financeiros incorretos ou de outros usuários podem causar decisões
-prejudiciais; a responsabilidade ética e legal do produto exige rastreabilidade e disclaimers.
+prejudiciais; a responsabilidade ética e legal exige rastreabilidade e disclaimers. O suporte a
+provedores locais (Ollama) reduz custos operacionais sem comprometer isolamento ou segurança.
 
 ### III. Test-First (NÃO NEGOCIÁVEL)
 
@@ -62,7 +81,8 @@ TDD é obrigatório em todo código de domínio e de integração.
 - O ciclo DEVE ser: Testes escritos → Revisão/aprovação → Testes vermelhos → Implementação →
   Verde → Refatoração.
 - Nenhuma funcionalidade de domínio PODE ser entregue sem cobertura de testes unitários.
-- Integrações com Gemini API e banco de dados DEVEM ter testes de integração ou de contrato.
+- Integrações com provedores de IA (Gemini, Ollama) e banco de dados DEVEM ter testes de
+  integração ou de contrato.
 - A cobertura mínima de linhas no domínio DEVE ser ≥ 80 %.
 - Testes DEVEM ser determinísticos; dependências externas DEVEM ser mockadas nos testes unitários.
 
@@ -74,9 +94,9 @@ comportamento esperado é documentado como código executável antes da entrega.
 O domínio financeiro DEVE ser independente de frameworks, IA e infraestrutura (Clean Architecture).
 
 - Camadas DEVEM respeitar a dependência invertida: Domínio → Aplicação → Infraestrutura/UI.
-- Mudanças no provedor de IA (ex.: trocar Gemini por outro modelo) ou no banco de dados NÃO
-  DEVEM requerer alterações no domínio.
-- Dependências externas (Gemini API, EF Core, repositórios) DEVEM ser abstraídas por interfaces
+- Mudanças no provedor de IA (ex.: trocar Gemini por Ollama/Llama 3 ou outro modelo) ou no
+  banco de dados NÃO DEVEM requerer alterações no domínio.
+- Dependências externas (provedores de IA, EF Core, repositórios) DEVEM ser abstraídas por interfaces
   definidas no domínio.
 - Projetos da solução C#/.NET DEVEM refletir as camadas: `FinanIA.Domain`, `FinanIA.Application`,
   `FinanIA.Infrastructure`, `FinanIA.Api`, `FinanIA.Web`.
@@ -139,8 +159,8 @@ obscurece o domínio de negócio.
   (ex.: SonarQube, Roslyn Analyzers) e auditoria de vulnerabilidades antes do merge.
 - **Migrações**: Toda alteração de schema DEVE incluir migration versionada; rollback DEVE ser
   testado localmente antes do merge.
-- **Revisão de IA prompts**: Mudanças nos prompts enviados ao Gemini DEVEM ser revisadas como
-  código e testadas com cenários de prompt injection.
+- **Revisão de IA prompts**: Mudanças nos prompts enviados ao provedor de IA (Gemini, Ollama,
+  etc.) DEVEM ser revisadas como código e testadas com cenários de prompt injection.
 - **ADRs**: Decisões arquiteturais significativas DEVEM ser documentadas em `docs/adr/` antes
   da implementação.
 
@@ -161,4 +181,4 @@ a constituição prevalece.
 - **Guidance file**: O arquivo `.specify/memory/constitution.md` é o documento vigente; versões
   anteriores são preservadas no histórico do Git.
 
-**Version**: 1.1.0 | **Ratified**: 2026-04-04 | **Last Amended**: 2026-04-04
+**Version**: 1.2.0 | **Ratified**: 2026-04-04 | **Last Amended**: 2026-04-05

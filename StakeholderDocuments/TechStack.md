@@ -1,19 +1,22 @@
 # Stack Tecnológica do FinanIA
 
 O FinanIA utilizará um backend **ASP.NET Core Web API** com **Clean Architecture** e um
-assistente de IA integrado via **Google Gemini API**. Esta combinação permite desenvolvimento
-rápido do MVP enquanto suporta evolução para um produto pronto para produção.
+assistente de IA com suporte a múltiplos provedores: **Google Gemini** (produção) e
+**Ollama/Llama 3** (desenvolvimento local e cenários sensíveis a custo). Esta combinação
+permite desenvolvimento rápido do MVP enquanto suporta evolução para um produto pronto para
+produção sem lock-in de provedor.
 
-## Por que ASP.NET Core + Clean Architecture + Gemini API?
+## Por que ASP.NET Core + Clean Architecture + Multi-Provider AI?
 
 Construir um assistente financeiro pessoal com **ASP.NET Core Web API**, **Clean Architecture**
-e **Google Gemini API** oferece diversas vantagens:
+e suporte a múltiplos provedores de IA (Gemini, Ollama) oferece diversas vantagens:
 
 1. **Domínio Isolado e Testável**: A Clean Architecture isola as regras de negócio financeiro
    de frameworks, banco de dados e IA, tornando o domínio 100% testável sem dependências externas.
 
-2. **Troca de Provedor de IA**: Se o Gemini precisar ser trocado por outro modelo, apenas a
-   camada de infraestrutura muda — o domínio e a aplicação não são afetados.
+2. **Troca de Provedor de IA sem Custo**: Alternar entre Gemini (cloud) e Ollama/Llama 3
+   (local) é feito via configuração — o domínio e a aplicação não são afetados. Isto elimina
+   lock-in e permite controle de custos de inferência.
 
 3. **Segurança por Design**: A separação em camadas facilita garantir que toda query ao banco de
    dados filtre por `UserId` e que prompts enviados à IA nunca contenham dados de outros usuários.
@@ -51,7 +54,12 @@ Seguindo a estrutura de projetos C# da solução (`FinanIA.Domain`, `FinanIA.App
 ### FinanIA.Infrastructure
 
 - Implementação dos repositórios com EF Core + SQLite (desenvolvimento) / PostgreSQL (produção)
-- Implementação do `IFinancialAssistant` via Google Gemini API
+- Implementações do `IFinancialAssistant`:
+  - `GeminiFinancialAssistant`: provedor cloud via `Mscc.GenerativeAI.Microsoft` (produção)
+  - `OllamaFinancialAssistant`: provedor local via `OllamaSharp` + `Microsoft.Extensions.AI`
+    (desenvolvimento e cenários sensíveis a custo)
+- Seleção de provedor por configuração (`AI:Provider` em `appsettings.json` /
+  variáveis de ambiente); padrão em `Development`: Ollama; padrão em `Production`: Gemini
 - Construção e sanitização de prompts enviados à IA
 - Configuração de autenticação JWT
 - Migrations versionadas do banco de dados
@@ -78,7 +86,9 @@ Para entregar o MVP rapidamente:
 
 - **Banco de dados**: SQLite com EF Core. Simples, sem servidor, ideal para desenvolvimento local
 - **Autenticação**: JWT simples gerado internamente; sem OAuth externo no MVP
-- **IA**: Gemini API com prompt construído a partir das transações do usuário autenticado
+- **IA**: Ollama/Llama 3 (local) no ambiente de desenvolvimento; Gemini API na produção;
+  prompt construído a partir das transações do usuário autenticado; provedor selecionável
+  por configuração
 - **Frontend**: Interface web mínima (Blazor WebAssembly) focada nas três
   funcionalidades: registrar transação, ver saldo, conversar com a IA
 - **Sem**: categorias, filtros, gráficos, exportação, recorrências
