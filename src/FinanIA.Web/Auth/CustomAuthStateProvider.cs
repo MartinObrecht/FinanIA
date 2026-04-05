@@ -12,6 +12,7 @@ public class CustomAuthStateProvider : AuthenticationStateProvider
     public CustomAuthStateProvider(AuthService authService)
     {
         _authService = authService;
+        _authService.OnTokenChanged += NotifyAuthStateChanged;
     }
 
     public override Task<AuthenticationState> GetAuthenticationStateAsync()

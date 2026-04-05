@@ -17,6 +17,8 @@ public class AuthService
 
     public string? AccessToken => _accessToken;
 
+    public event Action? OnTokenChanged;
+
     public AuthService(HttpClient http, IJSRuntime jsRuntime, NavigationManager navigationManager)
     {
         _http = http;
@@ -24,7 +26,17 @@ public class AuthService
         _navigationManager = navigationManager;
     }
 
-    public async Task<(bool Success, string? ErrorMessage)> RegisterAsync(string email, string password)
+    public async Task InitializeAsync()
+    {
+        var token = await _jsRuntime.InvokeAsync<string?>("sessionStorage.getItem", "accessToken");
+        if (!string.IsNullOrEmpty(token))
+        {
+            _accessToken = token;
+            OnTokenChanged?.Invoke();
+        }
+    }
+
+    public async Task<(bool Success, string? ErrorMessage)> RegisterAsync(string email, string password, string? returnUrl = null)
     {
         var request = new { email, password };
         var response = await _http.PostAsJsonAsync("api/auth/register", request);
@@ -37,11 +49,11 @@ public class AuthService
             return (false, "Resposta inválida do servidor.");
 
         await StoreTokensAsync(authResponse);
-        _navigationManager.NavigateTo("/");
+        _navigationManager.NavigateTo(returnUrl ?? "/");
         return (true, null);
     }
 
-    public async Task<(bool Success, string? ErrorMessage)> LoginAsync(string email, string password)
+    public async Task<(bool Success, string? ErrorMessage)> LoginAsync(string email, string password, string? returnUrl = null)
     {
         var request = new { email, password };
         var response = await _http.PostAsJsonAsync("api/auth/login", request);
@@ -54,7 +66,7 @@ public class AuthService
             return (false, "Resposta inválida do servidor.");
 
         await StoreTokensAsync(authResponse);
-        _navigationManager.NavigateTo("/");
+        _navigationManager.NavigateTo(returnUrl ?? "/");
         return (true, null);
     }
 
@@ -106,11 +118,15 @@ public class AuthService
     {
         _accessToken = authResponse.AccessToken;
         await _jsRuntime.InvokeVoidAsync("localStorage.setItem", "refreshToken", authResponse.RefreshToken);
+        await _jsRuntime.InvokeVoidAsync("sessionStorage.setItem", "accessToken", authResponse.AccessToken);
+        OnTokenChanged?.Invoke();
     }
 
     private async Task ClearTokensAsync()
     {
         _accessToken = null;
         await _jsRuntime.InvokeVoidAsync("localStorage.removeItem", "refreshToken");
+        await _jsRuntime.InvokeVoidAsync("sessionStorage.removeItem", "accessToken");
+        OnTokenChanged?.Invoke();
     }
 }
