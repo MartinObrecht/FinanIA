@@ -3,6 +3,8 @@ using FinanIA.Api.Middleware;
 using Scalar.AspNetCore;
 using FinanIA.Application.Auth;
 using FinanIA.Application.Auth.Commands;
+using FinanIA.Application.Transactions.Commands;
+using FinanIA.Application.Transactions.Queries;
 using FinanIA.Domain.Interfaces;
 using FinanIA.Infrastructure.Auth;
 using FinanIA.Infrastructure.Persistence;
@@ -24,6 +26,7 @@ builder.Services.AddDbContext<AppDbContext>(options =>
 // Repositories
 builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<IRefreshTokenRepository, RefreshTokenRepository>();
+builder.Services.AddScoped<ITransactionRepository, TransactionRepository>();
 
 // JWT token service
 builder.Services.AddScoped<IJwtTokenService, JwtTokenService>();
@@ -77,9 +80,21 @@ builder.Services.AddValidatorsFromAssemblyContaining<RegisterUserCommandHandler>
 builder.Services.AddScoped<RegisterUserCommandHandler>();
 builder.Services.AddScoped<LoginCommandHandler>();
 builder.Services.AddScoped<RefreshTokenCommandHandler>();
+builder.Services.AddScoped<LogoutCommandHandler>();
+builder.Services.AddScoped<CreateTransactionCommandHandler>();
+builder.Services.AddScoped<UpdateTransactionCommandHandler>();
+builder.Services.AddScoped<DeleteTransactionCommandHandler>();
+builder.Services.AddScoped<GetTransactionsQueryHandler>();
+builder.Services.AddScoped<GetBalanceQueryHandler>();
 
 // Controllers
-builder.Services.AddControllers();
+builder.Services.AddControllers()
+    .AddJsonOptions(options =>
+        options.JsonSerializerOptions.Converters.Add(new System.Text.Json.Serialization.JsonStringEnumConverter()));
+
+// Health checks
+builder.Services.AddHealthChecks()
+    .AddDbContextCheck<AppDbContext>("database");
 
 // OpenAPI
 builder.Services.AddOpenApi();
@@ -105,6 +120,8 @@ app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();
+
+app.MapHealthChecks("/health");
 
 app.Run();
 

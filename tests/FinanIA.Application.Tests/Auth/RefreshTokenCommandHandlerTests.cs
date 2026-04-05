@@ -4,6 +4,7 @@ using FinanIA.Application.Auth.Commands;
 using FinanIA.Domain.Entities;
 using FinanIA.Domain.Interfaces;
 using FluentAssertions;
+using Microsoft.Extensions.Logging;
 using NSubstitute;
 
 namespace FinanIA.Application.Tests.Auth;
@@ -24,7 +25,8 @@ public class RefreshTokenCommandHandlerTests
         _handler = new RefreshTokenCommandHandler(
             _userRepository,
             _refreshTokenRepository,
-            _jwtTokenService);
+            _jwtTokenService,
+            Substitute.For<ILogger<RefreshTokenCommandHandler>>());
     }
 
     [Fact]

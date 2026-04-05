@@ -13,15 +13,18 @@ public class AuthController : ControllerBase
     private readonly RegisterUserCommandHandler _registerHandler;
     private readonly LoginCommandHandler _loginHandler;
     private readonly RefreshTokenCommandHandler _refreshTokenHandler;
+    private readonly LogoutCommandHandler _logoutHandler;
 
     public AuthController(
         RegisterUserCommandHandler registerHandler,
         LoginCommandHandler loginHandler,
-        RefreshTokenCommandHandler refreshTokenHandler)
+        RefreshTokenCommandHandler refreshTokenHandler,
+        LogoutCommandHandler logoutHandler)
     {
         _registerHandler = registerHandler;
         _loginHandler = loginHandler;
         _refreshTokenHandler = refreshTokenHandler;
+        _logoutHandler = logoutHandler;
     }
 
     [HttpPost("register")]
@@ -59,6 +62,22 @@ public class AuthController : ControllerBase
         var command = new RefreshTokenCommand(userId, request.RefreshToken);
         var response = await _refreshTokenHandler.HandleAsync(command, ct);
         return Ok(response);
+    }
+
+    // UserId is extracted exclusively from the validated JWT sub claim via [Authorize].
+    // It is never accepted from the request body to prevent privilege escalation.
+    [Authorize]
+    [HttpPost("logout")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    public async Task<IActionResult> Logout(CancellationToken ct)
+    {
+        var sub = User.FindFirst(JwtRegisteredClaimNames.Sub)?.Value;
+        if (!Guid.TryParse(sub, out var userId))
+            return Unauthorized();
+
+        await _logoutHandler.HandleAsync(new LogoutCommand(userId), ct);
+        return NoContent();
     }
 }
 
