@@ -1,10 +1,11 @@
+using System.Text.RegularExpressions;
 using FinanIA.Domain.Interfaces;
 using FinanIA.Domain.ValueObjects;
 using Microsoft.Extensions.AI;
 
 namespace FinanIA.Infrastructure.Assistant;
 
-public sealed class GeminiFinancialAssistant : IFinancialAssistant
+public sealed partial class GeminiFinancialAssistant : IFinancialAssistant
 {
     private const string Disclaimer =
         "Esta resposta não substitui aconselhamento financeiro profissional.";
@@ -46,7 +47,7 @@ public sealed class GeminiFinancialAssistant : IFinancialAssistant
             messages.Add(new ChatMessage(role, turn.Content));
         }
 
-        messages.Add(new ChatMessage(ChatRole.User, question));
+        messages.Add(new ChatMessage(ChatRole.User, SanitizeInput(question)));
 
         // Tool closure captures userId from the outer scope — the model cannot supply a different userId
         var getBalanceTool = AIFunctionFactory.Create(
@@ -91,4 +92,25 @@ public sealed class GeminiFinancialAssistant : IFinancialAssistant
             return text;
         return text.TrimEnd() + "\n\n" + Disclaimer;
     }
+
+    /// <summary>
+    /// Removes NUL bytes and collapses runs of 2+ non-printable control characters into a
+    /// single space so that user-supplied text cannot embed hidden instructions.
+    /// Printable characters and normal whitespace (space, tab, newline, CR) are preserved.
+    /// </summary>
+    private static string SanitizeInput(string input)
+    {
+        if (string.IsNullOrEmpty(input))
+            return input;
+
+        // Step 1: strip all NUL bytes
+        var withoutNul = input.Replace("\0", string.Empty, StringComparison.Ordinal);
+
+        // Step 2: replace runs of 2+ non-printable control characters with a single space.
+        // Matches any character in [\x01-\x08\x0B\x0C\x0E-\x1F\x7F] (excludes \t \n \r).
+        return ControlCharRunRegex().Replace(withoutNul, " ");
+    }
+
+    [GeneratedRegex(@"[\x01-\x08\x0B\x0C\x0E-\x1F\x7F]{2,}", RegexOptions.None, matchTimeoutMilliseconds: 1000)]
+    private static partial Regex ControlCharRunRegex();
 }
