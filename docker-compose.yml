@@ -12,6 +12,7 @@ services:
       - JWT__Issuer=${JWT_ISSUER:-FinanIA}
       - JWT__Audience=${JWT_AUDIENCE:-FinanIA}
       - CORS__AllowedOrigin=http://localhost:3000
+      - Gemini__ApiKey=${GEMINI_API_KEY}
     volumes:
       - db-data:/data
 

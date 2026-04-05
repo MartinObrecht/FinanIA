@@ -1,11 +1,13 @@
 using System.Text;
 using FinanIA.Api.Middleware;
 using Scalar.AspNetCore;
+using FinanIA.Application.Assistant;
 using FinanIA.Application.Auth;
 using FinanIA.Application.Auth.Commands;
 using FinanIA.Application.Transactions.Commands;
 using FinanIA.Application.Transactions.Queries;
 using FinanIA.Domain.Interfaces;
+using FinanIA.Infrastructure.Assistant;
 using FinanIA.Infrastructure.Auth;
 using FinanIA.Infrastructure.Persistence;
 using FinanIA.Infrastructure.Persistence.Repositories;
@@ -13,7 +15,9 @@ using FluentValidation;
 using FluentValidation.AspNetCore;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.AI;
 using Microsoft.IdentityModel.Tokens;
+using Mscc.GenerativeAI.Microsoft;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -86,6 +90,20 @@ builder.Services.AddScoped<UpdateTransactionCommandHandler>();
 builder.Services.AddScoped<DeleteTransactionCommandHandler>();
 builder.Services.AddScoped<GetTransactionsQueryHandler>();
 builder.Services.AddScoped<GetBalanceQueryHandler>();
+
+// Gemini IChatClient
+var geminiApiKey = builder.Configuration["Gemini:ApiKey"]
+    ?? builder.Configuration["Gemini__ApiKey"]
+    ?? throw new InvalidOperationException("Gemini API key is not configured. Set 'Gemini:ApiKey' via dotnet user-secrets or 'GEMINI_API_KEY' environment variable.");
+builder.Services.AddSingleton<IChatClient>(sp =>
+    new GeminiChatClient(apiKey: geminiApiKey, model: "gemini-2.5-flash")
+        .AsBuilder()
+        .UseFunctionInvocation(configure: client => client.MaximumIterationsPerRequest = 5)
+        .Build(sp));
+
+// AI Financial Assistant
+builder.Services.AddScoped<IFinancialAssistant, GeminiFinancialAssistant>();
+builder.Services.AddScoped<AskAssistantCommandHandler>();
 
 // Controllers
 builder.Services.AddControllers()

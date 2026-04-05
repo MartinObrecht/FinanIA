@@ -1,0 +1,127 @@
+@page "/chat"
+@using FinanIA.Web.Services
+@inject AssistantService AssistantService
+@attribute [Microsoft.AspNetCore.Authorization.Authorize]
+
+<PageTitle>Assistente IA</PageTitle>
+
+<h1>Assistente Financeiro</h1>
+
+@if (!string.IsNullOrEmpty(_errorMessage))
+{
+    <div class="alert alert-danger" role="alert">@_errorMessage</div>
+}
+
+<!-- Chat Thread -->
+<div class="card mb-3" style="min-height: 300px; max-height: 500px; overflow-y: auto;" id="chat-thread">
+    <div class="card-body">
+        @if (_history.Count == 0)
+        {
+            <p class="text-muted">Olá! Pergunte-me sobre suas finanças.</p>
+        }
+        else
+        {
+            @foreach (var turn in _history)
+            {
+                @if (turn.Role == "user")
+                {
+                    <div class="d-flex justify-content-end mb-2">
+                        <div class="bg-primary text-white rounded p-2" style="max-width: 75%;">
+                            @turn.Content
+                        </div>
+                    </div>
+                }
+                else
+                {
+                    <div class="d-flex justify-content-start mb-2">
+                        <div class="bg-light border rounded p-2" style="max-width: 75%; white-space: pre-wrap;">
+                            @turn.Content
+                        </div>
+                    </div>
+                }
+            }
+            @if (_isLoading)
+            {
+                <div class="d-flex justify-content-start mb-2">
+                    <div class="bg-light border rounded p-2">
+                        <span class="spinner-border spinner-border-sm" role="status" aria-label="Aguardando resposta..."></span>
+                        Aguardando resposta...
+                    </div>
+                </div>
+            }
+        }
+    </div>
+</div>
+
+<!-- Input -->
+<div class="d-flex gap-2">
+    <input class="form-control"
+           maxlength="2000"
+           placeholder="Escreva sua pergunta..."
+           @bind="_message"
+           @bind:event="oninput"
+           @onkeydown="HandleKeyDown"
+           disabled="@_isLoading" />
+    <button class="btn btn-primary"
+            @onclick="HandleSend"
+            disabled="@(_isLoading || string.IsNullOrWhiteSpace(_message))">
+        @if (_isLoading)
+        {
+            <span class="spinner-border spinner-border-sm" role="status"></span>
+        }
+        else
+        {
+            <span>Enviar</span>
+        }
+    </button>
+</div>
+<div class="text-muted small mt-1">@_message.Length / 2000 caracteres</div>
+
+@code {
+    private string _message = string.Empty;
+    private bool _isLoading;
+    private string? _errorMessage;
+    private readonly List<ConversationTurn> _history = [];
+
+    private async Task HandleSend()
+    {
+        var userMessage = _message.Trim();
+        if (string.IsNullOrWhiteSpace(userMessage) || _isLoading)
+            return;
+
+        _errorMessage = null;
+        _message = string.Empty;
+        _history.Add(new ConversationTurn("user", userMessage));
+        _isLoading = true;
+
+        try
+        {
+            var previousMessages = _history
+                .Take(_history.Count - 1)
+                .ToList()
+                .AsReadOnly();
+
+            var (result, error) = await AssistantService.AskAsync(userMessage, previousMessages);
+
+            if (error is not null || result is null)
+            {
+                _errorMessage = error ?? "Resposta inválida do assistente.";
+                _history.RemoveAt(_history.Count - 1);
+            }
+            else
+            {
+                _history.Add(new ConversationTurn("assistant", result.Reply));
+            }
+        }
+        finally
+        {
+            _isLoading = false;
+        }
+    }
+
+    private async Task HandleKeyDown(KeyboardEventArgs e)
+    {
+        if (e.Key == "Enter" && !e.ShiftKey)
+            await HandleSend();
+    }
+}
