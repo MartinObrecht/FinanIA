@@ -24,6 +24,7 @@ builder.Services.AddDbContext<AppDbContext>(options =>
 // Repositories
 builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<IRefreshTokenRepository, RefreshTokenRepository>();
+builder.Services.AddScoped<ITransactionRepository, TransactionRepository>();
 
 // JWT token service
 builder.Services.AddScoped<IJwtTokenService, JwtTokenService>();
@@ -80,7 +81,9 @@ builder.Services.AddScoped<RefreshTokenCommandHandler>();
 builder.Services.AddScoped<LogoutCommandHandler>();
 
 // Controllers
-builder.Services.AddControllers();
+builder.Services.AddControllers()
+    .AddJsonOptions(options =>
+        options.JsonSerializerOptions.Converters.Add(new System.Text.Json.Serialization.JsonStringEnumConverter()));
 
 // Health checks
 builder.Services.AddHealthChecks()
