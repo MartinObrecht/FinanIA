@@ -3,6 +3,8 @@ using FinanIA.Api.Middleware;
 using Scalar.AspNetCore;
 using FinanIA.Application.Auth;
 using FinanIA.Application.Auth.Commands;
+using FinanIA.Application.Transactions.Commands;
+using FinanIA.Application.Transactions.Queries;
 using FinanIA.Domain.Interfaces;
 using FinanIA.Infrastructure.Auth;
 using FinanIA.Infrastructure.Persistence;
@@ -79,6 +81,11 @@ builder.Services.AddScoped<RegisterUserCommandHandler>();
 builder.Services.AddScoped<LoginCommandHandler>();
 builder.Services.AddScoped<RefreshTokenCommandHandler>();
 builder.Services.AddScoped<LogoutCommandHandler>();
+builder.Services.AddScoped<CreateTransactionCommandHandler>();
+builder.Services.AddScoped<UpdateTransactionCommandHandler>();
+builder.Services.AddScoped<DeleteTransactionCommandHandler>();
+builder.Services.AddScoped<GetTransactionsQueryHandler>();
+builder.Services.AddScoped<GetBalanceQueryHandler>();
 
 // Controllers
 builder.Services.AddControllers()

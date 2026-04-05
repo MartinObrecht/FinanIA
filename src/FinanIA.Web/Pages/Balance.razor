@@ -1,0 +1,59 @@
+@page "/balance"
+@using FinanIA.Web.Services
+@inject TransactionService TransactionService
+@attribute [Microsoft.AspNetCore.Authorization.Authorize]
+
+<PageTitle>Saldo</PageTitle>
+
+<h1>Saldo Financeiro</h1>
+
+@if (_isLoading)
+{
+    <p>Carregando...</p>
+}
+else if (_balance is null)
+{
+    <div class="alert alert-warning" role="alert">Não foi possível carregar o saldo.</div>
+}
+else
+{
+    <div class="row g-3">
+        <div class="col-md-4">
+            <div class="card border-success">
+                <div class="card-body text-center">
+                    <h6 class="card-subtitle mb-2 text-muted">Total de Receitas</h6>
+                    <p class="card-text fs-4 text-success fw-bold">R$ @_balance.TotalIncome.ToString("N2")</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card border-danger">
+                <div class="card-body text-center">
+                    <h6 class="card-subtitle mb-2 text-muted">Total de Despesas</h6>
+                    <p class="card-text fs-4 text-danger fw-bold">R$ @_balance.TotalExpense.ToString("N2")</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card @(_balance.Balance >= 0 ? "border-primary" : "border-warning")">
+                <div class="card-body text-center">
+                    <h6 class="card-subtitle mb-2 text-muted">Saldo Líquido</h6>
+                    <p class="card-text fs-4 fw-bold @(_balance.Balance >= 0 ? "text-primary" : "text-warning")">
+                        R$ @_balance.Balance.ToString("N2")
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+@code {
+    private BalanceResponse? _balance;
+    private bool _isLoading = true;
+
+    protected override async Task OnInitializedAsync()
+    {
+        _balance = await TransactionService.GetBalanceAsync();
+        _isLoading = false;
+    }
+}
