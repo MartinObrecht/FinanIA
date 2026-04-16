@@ -448,4 +448,24 @@ public class FinancialAssistantServiceTests
         userMessage.Text.Should().Contain("balance");
         userMessage.Text.Should().Contain("query");
     }
+
+    // ── US3: EnsureDisclaimer — non-financial greeting ───────────────────────
+
+    [Fact]
+    public async Task AskAsync_NonFinancialGreeting_DisclaimerStillAppended()
+    {
+        var userId = Guid.NewGuid();
+        const string greetingReply = "Olá! Sou seu assistente financeiro. Como posso te ajudar hoje?";
+
+        _chatClient
+            .GetResponseAsync(
+                Arg.Any<IEnumerable<ChatMessage>>(),
+                Arg.Any<ChatOptions?>(),
+                Arg.Any<CancellationToken>())
+            .Returns(new ChatResponse([new ChatMessage(ChatRole.Assistant, greetingReply)]));
+
+        var result = await _assistant.AskAsync(userId, "Oi, tudo bem?", [], CancellationToken.None);
+
+        result.Should().EndWith("Esta resposta não substitui aconselhamento financeiro profissional.");
+    }
 }
