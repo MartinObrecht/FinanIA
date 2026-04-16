@@ -5,7 +5,7 @@ using Microsoft.Extensions.AI;
 
 namespace FinanIA.Infrastructure.Assistant;
 
-public sealed partial class GeminiFinancialAssistant : IFinancialAssistant
+public sealed partial class FinancialAssistantService : IFinancialAssistant
 {
     private const string Disclaimer =
         "Esta resposta não substitui aconselhamento financeiro profissional.";
@@ -13,7 +13,7 @@ public sealed partial class GeminiFinancialAssistant : IFinancialAssistant
     private readonly IChatClient _chatClient;
     private readonly ITransactionRepository _transactionRepository;
 
-    public GeminiFinancialAssistant(
+    public FinancialAssistantService(
         IChatClient chatClient,
         ITransactionRepository transactionRepository)
     {

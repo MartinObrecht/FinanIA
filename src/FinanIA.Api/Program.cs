@@ -17,7 +17,7 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.AI;
 using Microsoft.IdentityModel.Tokens;
-using Mscc.GenerativeAI.Microsoft;
+using Mscc.GenerativeAI.Microsoft; // provedor atual: Gemini — substituir aqui ao trocar de modelo
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -91,18 +91,21 @@ builder.Services.AddScoped<DeleteTransactionCommandHandler>();
 builder.Services.AddScoped<GetTransactionsQueryHandler>();
 builder.Services.AddScoped<GetBalanceQueryHandler>();
 
-// Gemini IChatClient
-var geminiApiKey = builder.Configuration["Gemini:ApiKey"]
+// IChatClient — provedor atual: Gemini (gemini-2.5-flash)
+// Para trocar de provedor basta substituir GeminiChatClient pela implementação IChatClient
+// do novo provedor (ex.: OpenAIChatClient, AzureAIInferenceChatClient) e atualizar a chave de config.
+var aiApiKey = builder.Configuration["Gemini:ApiKey"]
     ?? builder.Configuration["Gemini__ApiKey"]
-    ?? throw new InvalidOperationException("Gemini API key is not configured. Set 'Gemini:ApiKey' via dotnet user-secrets or 'GEMINI_API_KEY' environment variable.");
+    ?? throw new InvalidOperationException(
+        "Gemini API key is not configured. Set 'Gemini:ApiKey' via dotnet user-secrets or environment variable.");
 builder.Services.AddSingleton<IChatClient>(sp =>
-    new GeminiChatClient(apiKey: geminiApiKey, model: "gemini-2.5-flash")
+    new GeminiChatClient(apiKey: aiApiKey, model: "gemini-2.5-flash")
         .AsBuilder()
         .UseFunctionInvocation(configure: client => client.MaximumIterationsPerRequest = 5)
         .Build(sp));
 
 // AI Financial Assistant
-builder.Services.AddScoped<IFinancialAssistant, GeminiFinancialAssistant>();
+builder.Services.AddScoped<IFinancialAssistant, FinancialAssistantService>();
 builder.Services.AddScoped<AskAssistantCommandHandler>();
 
 // Controllers

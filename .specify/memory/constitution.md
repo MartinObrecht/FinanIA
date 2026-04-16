@@ -1,17 +1,18 @@
 <!--
 SYNC IMPACT REPORT
 ==================
-Version change: 1.2.0 → 1.3.0
-Bump rationale: MINOR — Principle II reverted from multi-provider AI to Gemini-only;
-  Ollama/Llama 3 local provider removed (feature 004-ollama-provider não adotada).
-  Principles III and IV provider references updated accordingly.
-  Dev Workflow prompt review line simplified.
+Version change: 1.3.0 → 1.4.0
+Bump rationale: MINOR — Principle II atualizado para desacoplar a arquitetura de qualquer
+  provedor de IA específico; referências ao Gemini como provedor obrigatório removidas.
+  A implementação usa `IChatClient` (Microsoft.Extensions.AI) como abstração — qualquer
+  provedor compatível pode ser injetado sem alterar domínio ou aplicação.
+  Principles III e Dev Workflow atualizados: "(Gemini)" → genérico "provedor de IA".
 
 Modified principles:
-  - Principle II: Revertido para provedor único (Gemini); opção Ollama/Llama 3, política de
-    seleção de provedor e diretriz de controle de custo removidas.
-  - Principle III: Referência "(Gemini, Ollama)" revertida para "(Gemini)".
-  - Principle IV: Exemplo de troca de provedor simplificado; referência a Ollama/Llama 3 removida.
+  - Principle II: Removido bullet que fixava Gemini/Mscc.GenerativeAI.Microsoft como
+    provedor obrigatório; substituído por diretriz de abstração via IChatClient.
+  - Principle III: Referência "(Gemini)" substituída por "qualquer provedor de IA configurado".
+  - Dev Workflow: "(Gemini)" substituído por "ao provedor de IA ativo".
 
 Added sections: none
 Removed sections: none
@@ -20,8 +21,11 @@ Templates alignment:
   ✅ plan-template.md     — Nenhuma alteração necessária; gate Constitution Check inalterado
   ✅ spec-template.md     — Nenhuma alteração necessária
   ✅ tasks-template.md    — Nenhuma alteração necessária
-  ✅ .github/copilot-instructions.md — Entrada OllamaSharp / 004-ollama-provider removida
-  ✅ StakeholderDocuments/TechStack.md — Revertido para provedor único (Gemini)
+  ✅ .github/copilot-instructions.md — Referência a Mscc.GenerativeAI.Microsoft generalizada
+  ✅ StakeholderDocuments/TechStack.md — Referências ao Gemini generalizadas para provedor plugável
+  ✅ StakeholderDocuments/AppFeatures.md — Notas de dev atualizadas
+  ✅ StakeholderDocuments/ProjectGoals.md — Referências ao Gemini generalizadas
+  ✅ specs/003-ai-financial-assistant/ — Narrativa atualizada para enfatizar IChatClient
 
 Deferred TODOs: none
 -->
@@ -56,8 +60,9 @@ independentemente do provedor de modelo utilizado.
   profissional.
 - Prompts enviados ao provedor de IA DEVEM ser sanitizados para prevenir prompt injection.
 - O histórico de conversas DEVE ser isolado por usuário e criptografado em repouso.
-- O provedor de IA é **Gemini** (Google), via `Mscc.GenerativeAI.Microsoft`; futuras trocas
-  de provedor NUNCA DEVEM exigir alterações no domínio ou na camada de aplicação.
+- O provedor de IA DEVE ser abstraído via `IChatClient` (`Microsoft.Extensions.AI`); a
+  implementação concreta reside exclusivamente na camada de infraestrutura e NUNCA DEVE
+  exigir alterações no domínio ou na camada de aplicação ao ser trocada.
 
 **Rationale**: Dados financeiros incorretos ou de outros usuários podem causar decisões
 prejudiciais; a responsabilidade ética e legal exige rastreabilidade e disclaimers.
@@ -69,8 +74,8 @@ TDD é obrigatório em todo código de domínio e de integração.
 - O ciclo DEVE ser: Testes escritos → Revisão/aprovação → Testes vermelhos → Implementação →
   Verde → Refatoração.
 - Nenhuma funcionalidade de domínio PODE ser entregue sem cobertura de testes unitários.
-- Integrações com o provedor de IA (Gemini) e banco de dados DEVEM ter testes de
-  integração ou de contrato.
+- Integrações com o provedor de IA configurado e banco de dados DEVEM ter testes de
+  integração ou de contrato; o provedor de IA DEVE ser mockado via `IChatClient` nos testes unitários.
 - A cobertura mínima de linhas no domínio DEVE ser ≥ 80 %.
 - Testes DEVEM ser determinísticos; dependências externas DEVEM ser mockadas nos testes unitários.
 
@@ -147,7 +152,7 @@ obscurece o domínio de negócio.
   (ex.: SonarQube, Roslyn Analyzers) e auditoria de vulnerabilidades antes do merge.
 - **Migrações**: Toda alteração de schema DEVE incluir migration versionada; rollback DEVE ser
   testado localmente antes do merge.
-- **Revisão de IA prompts**: Mudanças nos prompts enviados ao provedor de IA (Gemini) DEVEM
+- **Revisão de IA prompts**: Mudanças nos prompts enviados ao provedor de IA ativo DEVEM
   ser revisadas como código e testadas com cenários de prompt injection.
 - **ADRs**: Decisões arquiteturais significativas DEVEM ser documentadas em `docs/adr/` antes
   da implementação.
@@ -169,4 +174,4 @@ a constituição prevalece.
 - **Guidance file**: O arquivo `.specify/memory/constitution.md` é o documento vigente; versões
   anteriores são preservadas no histórico do Git.
 
-**Version**: 1.3.0 | **Ratified**: 2026-04-04 | **Last Amended**: 2026-04-05
+**Version**: 1.4.0 | **Ratified**: 2026-04-04 | **Last Amended**: 2026-04-16

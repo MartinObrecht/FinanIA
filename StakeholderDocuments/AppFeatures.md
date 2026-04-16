@@ -90,7 +90,7 @@ consideradas para versões futuras:
 
 - Use SQLite com EF Core para persistência (setup simples, sem servidor)
 - Implemente autenticação JWT com expiração de 1h + refresh token rotativo
-- Use a Gemini API com prompt construído a partir das transações do usuário; nunca inclua dados
+- Configure o provedor de IA via `IChatClient` com prompt construído a partir das transações do usuário; nunca inclua dados
   de outros usuários no contexto
 - Sanitize o conteúdo recebido do usuário antes de incluir no prompt enviado à IA (prevenir
   prompt injection)
