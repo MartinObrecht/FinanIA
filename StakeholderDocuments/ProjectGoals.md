@@ -7,7 +7,7 @@ insights personalizados, tudo em linguagem natural e sem exigir conhecimento fin
 ## Propósito
 
 O aplicativo existe para dar ao usuário um panorama claro e atualizado das suas finanças
-pessoais, com o auxílio de um assistente de IA (Gemini) que responde perguntas baseadas
+pessoais, com o auxílio de um assistente de IA que responde perguntas baseadas
 exclusivamente nos dados reais do próprio usuário.
 
 ## Escopo alvo (MVP)
@@ -86,7 +86,7 @@ Uma vez que o Extended-MVP estiver funcionando, estes recursos podem ser adicion
 
 ## Nota sobre escolha tecnológica
 
-As escolhas tecnológicas (ASP.NET Core + Clean Architecture + Gemini API) devem suportar
+As escolhas tecnológicas (ASP.NET Core + Clean Architecture + IA plugável via `IChatClient`) devem suportar
 recursos futuros prontos para produção sem exigir uma reescrita completa. A arquitetura
 permite adicionar persistência avançada, processamento em background e capacidades de UI
 aprimoradas conforme necessário.

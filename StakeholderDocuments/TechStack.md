@@ -1,22 +1,21 @@
 # Stack Tecnológica do FinanIA
 
 O FinanIA utilizará um backend **ASP.NET Core Web API** com **Clean Architecture** e um
-assistente de IA com suporte a múltiplos provedores: **Google Gemini** (produção) e
-**Ollama/Llama 3** (desenvolvimento local e cenários sensíveis a custo). Esta combinação
-permite desenvolvimento rápido do MVP enquanto suporta evolução para um produto pronto para
-produção sem lock-in de provedor.
+assistente de IA baseado em um **provedor de IA plugável** (configurado via `IChatClient` de
+`Microsoft.Extensions.AI`). Esta combinação permite desenvolvimento rápido do MVP enquanto
+suporta evolução para um produto pronto para produção.
 
-## Por que ASP.NET Core + Clean Architecture + Multi-Provider AI?
+## Por que ASP.NET Core + Clean Architecture + IA Plugável?
 
 Construir um assistente financeiro pessoal com **ASP.NET Core Web API**, **Clean Architecture**
-e suporte a múltiplos provedores de IA (Gemini, Ollama) oferece diversas vantagens:
+e um **provedor de IA plugável** (`IChatClient`) oferece diversas vantagens:
 
 1. **Domínio Isolado e Testável**: A Clean Architecture isola as regras de negócio financeiro
    de frameworks, banco de dados e IA, tornando o domínio 100% testável sem dependências externas.
 
-2. **Troca de Provedor de IA sem Custo**: Alternar entre Gemini (cloud) e Ollama/Llama 3
-   (local) é feito via configuração — o domínio e a aplicação não são afetados. Isto elimina
-   lock-in e permite controle de custos de inferência.
+2. **Provedor de IA Desacoplado**: O provedor de IA é isolado na camada de infraestrutura via
+   a abstração `IChatClient` (`Microsoft.Extensions.AI`); o domínio e a aplicação não são
+   afetados por mudanças de provedor.
 
 3. **Segurança por Design**: A separação em camadas facilita garantir que toda query ao banco de
    dados filtre por `UserId` e que prompts enviados à IA nunca contenham dados de outros usuários.
@@ -54,13 +53,9 @@ Seguindo a estrutura de projetos C# da solução (`FinanIA.Domain`, `FinanIA.App
 ### FinanIA.Infrastructure
 
 - Implementação dos repositórios com EF Core + SQLite (desenvolvimento) / PostgreSQL (produção)
-- Implementações do `IFinancialAssistant`:
-  - `GeminiFinancialAssistant`: provedor cloud via `Mscc.GenerativeAI.Microsoft` (produção)
-  - `OllamaFinancialAssistant`: provedor local via `OllamaSharp` + `Microsoft.Extensions.AI`
-    (desenvolvimento e cenários sensíveis a custo)
-- Seleção de provedor por configuração (`AI:Provider` em `appsettings.json` /
-  variáveis de ambiente); padrão em `Development`: Ollama; padrão em `Production`: Gemini
-- Construção e sanitização de prompts enviados à IA
+- Implementações do `IFinancialAssistant` via `IChatClient` (`Microsoft.Extensions.AI`):
+  - Qualquer provedor compatível com `IChatClient` pode ser injetado (ex.: Gemini, OpenAI, Azure OpenAI, Ollama)
+- Construção e sanitização de prompts enviados ao modelo
 - Configuração de autenticação JWT
 - Migrations versionadas do banco de dados
 
@@ -86,9 +81,7 @@ Para entregar o MVP rapidamente:
 
 - **Banco de dados**: SQLite com EF Core. Simples, sem servidor, ideal para desenvolvimento local
 - **Autenticação**: JWT simples gerado internamente; sem OAuth externo no MVP
-- **IA**: Ollama/Llama 3 (local) no ambiente de desenvolvimento; Gemini API na produção;
-  prompt construído a partir das transações do usuário autenticado; provedor selecionável
-  por configuração
+- **IA**: Provedor de IA configurado via `IChatClient`; prompt construído a partir das transações do usuário autenticado
 - **Frontend**: Interface web mínima (Blazor WebAssembly) focada nas três
   funcionalidades: registrar transação, ver saldo, conversar com a IA
 - **Sem**: categorias, filtros, gráficos, exportação, recorrências
@@ -143,7 +136,8 @@ O arquivo `appsettings.Development.json` **não** deve conter segredos reais. Us
 user-secrets` para desenvolvimento local:
 
 ```bash
-dotnet user-secrets set "Gemini:ApiKey" "sua-chave-aqui" --project src/FinanIA.Api
+# Chave de API do provedor de IA escolhido (ex.: Gemini, OpenAI)
+dotnet user-secrets set "AI:ApiKey" "sua-chave-aqui" --project src/FinanIA.Api
 dotnet user-secrets set "Jwt:Secret" "sua-chave-jwt-secreta" --project src/FinanIA.Api
 ```
 
@@ -152,8 +146,8 @@ dotnet user-secrets set "Jwt:Secret" "sua-chave-jwt-secreta" --project src/Finan
 - **Leia configurações do ambiente**, nunca hardcode:
 
   ```csharp
-  var geminiApiKey = builder.Configuration["Gemini:ApiKey"]
-      ?? throw new InvalidOperationException("Gemini:ApiKey not configured");
+  var aiApiKey = builder.Configuration["AI:ApiKey"]
+      ?? throw new InvalidOperationException("AI:ApiKey not configured");
   ```
 
 - **Teste de pré-voo antes do desenvolvimento**:
@@ -179,8 +173,8 @@ Quando o projeto evoluir além da demonstração básica, esta arquitetura supor
 
 ## Resumo
 
-ASP.NET Core com Clean Architecture e Google Gemini API fornece um caminho direto para construir
-o assistente financeiro de forma incremental:
+ASP.NET Core com Clean Architecture e provedor de IA plugável (`IChatClient`) fornece um caminho
+direto para construir o assistente financeiro de forma incremental:
 
 - **MVP**: Autenticação + CRUD de transações + chat IA baseado nos dados do usuário — simples
   e focado na proposta de valor central

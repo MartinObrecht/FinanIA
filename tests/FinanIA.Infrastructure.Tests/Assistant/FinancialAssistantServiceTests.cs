@@ -9,17 +9,17 @@ using NSubstitute;
 
 namespace FinanIA.Infrastructure.Tests.Assistant;
 
-public class GeminiFinancialAssistantTests
+public class FinancialAssistantServiceTests
 {
     private readonly IChatClient _chatClient;
     private readonly ITransactionRepository _transactionRepository;
-    private readonly GeminiFinancialAssistant _assistant;
+    private readonly FinancialAssistantService _assistant;
 
-    public GeminiFinancialAssistantTests()
+    public FinancialAssistantServiceTests()
     {
         _chatClient = Substitute.For<IChatClient>();
         _transactionRepository = Substitute.For<ITransactionRepository>();
-        _assistant = new GeminiFinancialAssistant(_chatClient, _transactionRepository);
+        _assistant = new FinancialAssistantService(_chatClient, _transactionRepository);
     }
 
     [Fact]
@@ -302,11 +302,11 @@ public class GeminiFinancialAssistantTests
         // Two independent mock sets — one per user
         var chatClientA = Substitute.For<IChatClient>();
         var repoA = Substitute.For<ITransactionRepository>();
-        var assistantA = new GeminiFinancialAssistant(chatClientA, repoA);
+        var assistantA = new FinancialAssistantService(chatClientA, repoA);
 
         var chatClientB = Substitute.For<IChatClient>();
         var repoB = Substitute.For<ITransactionRepository>();
-        var assistantB = new GeminiFinancialAssistant(chatClientB, repoB);
+        var assistantB = new FinancialAssistantService(chatClientB, repoB);
 
         var txA = new List<Transaction>
         {

@@ -1,13 +1,11 @@
 # FinanIA Development Guidelines
 
-Auto-generated from all feature plans. Last updated: 2026-04-05
+Auto-generated from all feature plans. Last updated: 2026-04-16
 
 ## Active Technologies
 - SQLite (desenvolvimento local) via EF Core; migration `AddTransaction` adicionada (002-transactions-balance)
-- C# 13 / .NET 10 + `Microsoft.Extensions.AI` 9.x · `Mscc.GenerativeAI.Microsoft` 3.1.0 · (003-ai-financial-assistant)
+- C# 13 / .NET 10 + `Microsoft.Extensions.AI` 10.* (IChatClient — provedor de IA plugável, agnóstico de provedor) · (003-ai-financial-assistant)
 - SQLite (EF Core) — nenhuma migration nova; leitura via repositórios existentes (003-ai-financial-assistant)
-- `OllamaSharp` + `Microsoft.Extensions.AI` — provedor local Ollama/Llama 3 como alternativa ao Gemini (004-ollama-provider)
-
 - C# 13 / .NET 10 (LTS, lançado nov/2025) + ASP.NET Core Web API 10, EF Core 10 + SQLite (dev), Microsoft.AspNetCore.Authentication.JwtBearer 10, BCrypt.Net-Next 4.x, FluentValidation 11 (001-solution-foundation)
 
 ## Project Structure
@@ -26,9 +24,9 @@ tests/
 C# 13 / .NET 10 (LTS, lançado nov/2025): Follow standard conventions
 
 ## Recent Changes
-- 003-ai-financial-assistant: Added C# 13 / .NET 10 + `Microsoft.Extensions.AI` 9.x · `Mscc.GenerativeAI.Microsoft` 3.1.0 ·
+- 004-ollama-llama3-docker: Added [if applicable, e.g., PostgreSQL, CoreData, files or N/A]
+- 003-ai-financial-assistant: Added C# 13 / .NET 10 + `Microsoft.Extensions.AI` 10.* (IChatClient — provedor de IA plugável, agnóstico de provedor)
 - 002-transactions-balance: Added C# 13 / .NET 10 (LTS, lançado nov/2025) + ASP.NET Core Web API 10, EF Core 10 + SQLite (dev),
-- 002-transactions-balance: Added [if applicable, e.g., PostgreSQL, CoreData, files or N/A]
 
 
 <!-- MANUAL ADDITIONS START -->
