@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Components.Web;
 using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
 using Microsoft.AspNetCore.Components.Authorization;
+using MudBlazor.Services;
 using FinanIA.Web;
 using FinanIA.Web.Auth;
 using FinanIA.Web.Services;
@@ -20,5 +21,6 @@ builder.Services.AddScoped<AuthenticationStateProvider>(sp =>
     sp.GetRequiredService<CustomAuthStateProvider>());
 
 builder.Services.AddAuthorizationCore();
+builder.Services.AddMudServices();
 
 await builder.Build().RunAsync();

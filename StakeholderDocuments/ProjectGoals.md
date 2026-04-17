@@ -64,12 +64,12 @@ Após o MVP básico estar funcionando, o Extended-MVP adiciona:
 
 Antes de testar o MVP, verifique:
 
-- [ ] Backend roda sem erros e escuta na porta configurada
-- [ ] Frontend roda sem erros e carrega no navegador
-- [ ] Frontend está com a URL do backend correta nas configurações
-- [ ] CORS do backend permite a origem do frontend
-- [ ] Autenticação JWT está funcionando (login retorna token, rotas protegidas rejeitam sem token)
-- [ ] DevTools do navegador não mostra erros de conexão ao carregar a página
+- [x] Backend roda sem erros e escuta na porta configurada
+- [x] Frontend roda sem erros e carrega no navegador
+- [x] Frontend está com a URL do backend correta nas configurações
+- [x] CORS do backend permite a origem do frontend
+- [x] Autenticação JWT está funcionando (login retorna token, rotas protegidas rejeitam sem token)
+- [x] DevTools do navegador não mostra erros de conexão ao carregar a página
 
 ## Melhorias futuras (pós-MVP)
 
