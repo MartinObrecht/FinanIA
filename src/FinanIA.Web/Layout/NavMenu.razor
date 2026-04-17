@@ -1,60 +1,14 @@
-﻿<div class="top-row ps-3 navbar navbar-dark">
-    <div class="container-fluid">
-        <a class="navbar-brand" href="">FinanIA</a>
-        <button title="Navigation menu" class="navbar-toggler" @onclick="ToggleNavMenu">
-            <span class="navbar-toggler-icon"></span>
-        </button>
-    </div>
-</div>
-
-<div class="@NavMenuCssClass nav-scrollable" @onclick="ToggleNavMenu">
-    <nav class="nav flex-column">
-        <div class="nav-item px-3">
-            <NavLink class="nav-link" href="" Match="NavLinkMatch.All">
-                <span class="bi bi-house-door-fill-nav-menu" aria-hidden="true"></span> Home
-            </NavLink>
-        </div>
-        <AuthorizeView>
-            <Authorized>
-                <div class="nav-item px-3">
-                    <NavLink class="nav-link" href="transactions">
-                        <span class="bi bi-arrow-left-right" aria-hidden="true"></span> Transações
-                    </NavLink>
-                </div>
-                <div class="nav-item px-3">
-                    <NavLink class="nav-link" href="balance">
-                        <span class="bi bi-wallet2" aria-hidden="true"></span> Saldo
-                    </NavLink>
-                </div>
-                <div class="nav-item px-3">
-                    <NavLink class="nav-link" href="chat">
-                        <span class="bi bi-chat-dots-fill" aria-hidden="true"></span> Assistente IA
-                    </NavLink>
-                </div>
-            </Authorized>
-            <NotAuthorized>
-                <div class="nav-item px-3">
-                    <NavLink class="nav-link" href="login">
-                        <span class="bi bi-person-fill-nav-menu" aria-hidden="true"></span> Entrar
-                    </NavLink>
-                </div>
-                <div class="nav-item px-3">
-                    <NavLink class="nav-link" href="register">
-                        <span class="bi bi-person-plus-fill-nav-menu" aria-hidden="true"></span> Criar Conta
-                    </NavLink>
-                </div>
-            </NotAuthorized>
-        </AuthorizeView>
-    </nav>
-</div>
-
-@code {
-    private bool collapseNavMenu = true;
-
-    private string? NavMenuCssClass => collapseNavMenu ? "collapse" : null;
-
-    private void ToggleNavMenu()
-    {
-        collapseNavMenu = !collapseNavMenu;
-    }
-}
+﻿<MudNavMenu>
+    <MudNavLink Href="" Match="NavLinkMatch.All" Icon="@Icons.Material.Filled.Home">Home</MudNavLink>
+    <AuthorizeView>
+        <Authorized>
+            <MudNavLink Href="transactions" Icon="@Icons.Material.Filled.SwapHoriz">Transações</MudNavLink>
+            <MudNavLink Href="balance" Icon="@Icons.Material.Filled.AccountBalance">Saldo</MudNavLink>
+            <MudNavLink Href="chat" Icon="@Icons.Material.Filled.Chat">Assistente IA</MudNavLink>
+        </Authorized>
+        <NotAuthorized>
+            <MudNavLink Href="login" Icon="@Icons.Material.Filled.Login">Entrar</MudNavLink>
+            <MudNavLink Href="register" Icon="@Icons.Material.Filled.PersonAdd">Criar Conta</MudNavLink>
+        </NotAuthorized>
+    </AuthorizeView>
+</MudNavMenu>
