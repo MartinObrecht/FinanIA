@@ -5,46 +5,65 @@
 
 <PageTitle>Saldo</PageTitle>
 
-<h1>Saldo Financeiro</h1>
+<MudText Typo="Typo.h4" Class="mb-4">Saldo Financeiro</MudText>
 
 @if (_isLoading)
 {
-    <p>Carregando...</p>
+    <MudProgressLinear Indeterminate="true" Color="Color.Primary" />
 }
 else if (_balance is null)
 {
-    <div class="alert alert-warning" role="alert">Não foi possível carregar o saldo.</div>
+    <MudAlert Severity="Severity.Warning">Não foi possível carregar o saldo.</MudAlert>
 }
 else
 {
-    <div class="row g-3">
-        <div class="col-md-4">
-            <div class="card border-success">
-                <div class="card-body text-center">
-                    <h6 class="card-subtitle mb-2 text-muted">Total de Receitas</h6>
-                    <p class="card-text fs-4 text-success fw-bold">R$ @_balance.TotalIncome.ToString("N2")</p>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-4">
-            <div class="card border-danger">
-                <div class="card-body text-center">
-                    <h6 class="card-subtitle mb-2 text-muted">Total de Despesas</h6>
-                    <p class="card-text fs-4 text-danger fw-bold">R$ @_balance.TotalExpense.ToString("N2")</p>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-4">
-            <div class="card @(_balance.Balance >= 0 ? "border-primary" : "border-warning")">
-                <div class="card-body text-center">
-                    <h6 class="card-subtitle mb-2 text-muted">Saldo Líquido</h6>
-                    <p class="card-text fs-4 fw-bold @(_balance.Balance >= 0 ? "text-primary" : "text-warning")">
-                        R$ @_balance.Balance.ToString("N2")
-                    </p>
-                </div>
-            </div>
-        </div>
-    </div>
+    <MudGrid>
+        <MudItem xs="12" sm="4">
+            <MudCard Elevation="2">
+                <MudCardHeader>
+                    <CardHeaderAvatar>
+                        <MudIcon Icon="@Icons.Material.Filled.TrendingUp" Color="Color.Success" />
+                    </CardHeaderAvatar>
+                    <CardHeaderContent>
+                        <MudText Typo="Typo.subtitle1">Total de Receitas</MudText>
+                    </CardHeaderContent>
+                </MudCardHeader>
+                <MudCardContent Class="text-center">
+                    <MudText Typo="Typo.h5" Color="Color.Success">R$ @_balance.TotalIncome.ToString("N2")</MudText>
+                </MudCardContent>
+            </MudCard>
+        </MudItem>
+        <MudItem xs="12" sm="4">
+            <MudCard Elevation="2">
+                <MudCardHeader>
+                    <CardHeaderAvatar>
+                        <MudIcon Icon="@Icons.Material.Filled.TrendingDown" Color="Color.Error" />
+                    </CardHeaderAvatar>
+                    <CardHeaderContent>
+                        <MudText Typo="Typo.subtitle1">Total de Despesas</MudText>
+                    </CardHeaderContent>
+                </MudCardHeader>
+                <MudCardContent Class="text-center">
+                    <MudText Typo="Typo.h5" Color="Color.Error">R$ @_balance.TotalExpense.ToString("N2")</MudText>
+                </MudCardContent>
+            </MudCard>
+        </MudItem>
+        <MudItem xs="12" sm="4">
+            <MudCard Elevation="2">
+                <MudCardHeader>
+                    <CardHeaderAvatar>
+                        <MudIcon Icon="@Icons.Material.Filled.AccountBalance" />
+                    </CardHeaderAvatar>
+                    <CardHeaderContent>
+                        <MudText Typo="Typo.subtitle1">Saldo Atual</MudText>
+                    </CardHeaderContent>
+                </MudCardHeader>
+                <MudCardContent Class="text-center">
+                    <MudText Typo="Typo.h5">R$ @_balance.Balance.ToString("N2")</MudText>
+                </MudCardContent>
+            </MudCard>
+        </MudItem>
+    </MudGrid>
 }
 
 @code {

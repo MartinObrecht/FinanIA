@@ -1,5 +1,9 @@
 ﻿@inject FinanIA.Web.Services.AuthService AuthService
 
+<MudThemeProvider Theme="_theme" />
+<MudDialogProvider />
+<MudSnackbarProvider />
+
 <CascadingAuthenticationState>
     <Router AppAssembly="@typeof(App).Assembly" NotFoundPage="typeof(Pages.NotFound)">
         <Found Context="routeData">
@@ -14,6 +18,15 @@
 </CascadingAuthenticationState>
 
 @code {
+    private readonly MudTheme _theme = new()
+    {
+        PaletteLight = new PaletteLight
+        {
+            Success = "#2e7d32",
+            Error = "#c62828"
+        }
+    };
+
     protected override async Task OnInitializedAsync()
     {
         await AuthService.InitializeAsync();

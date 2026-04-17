@@ -5,77 +5,70 @@
 
 <PageTitle>Assistente IA</PageTitle>
 
-<h1>Assistente Financeiro</h1>
-
-@if (!string.IsNullOrEmpty(_errorMessage))
-{
-    <div class="alert alert-danger" role="alert">@_errorMessage</div>
-}
+<MudText Typo="Typo.h4" Class="mb-3">Assistente Financeiro</MudText>
 
 <!-- Chat Thread -->
-<div class="card mb-3" style="min-height: 300px; max-height: 500px; overflow-y: auto;" id="chat-thread">
-    <div class="card-body">
-        @if (_history.Count == 0)
+<MudPaper Elevation="2" Class="pa-3 mb-3 overflow-y-auto" Style="min-height:300px;max-height:500px;" id="chat-thread">
+    @if (_history.Count == 0)
+    {
+        <MudText Color="Color.Secondary">Olá! Pergunte-me sobre suas finanças.</MudText>
+    }
+    else
+    {
+        @foreach (var turn in _history)
         {
-            <p class="text-muted">Olá! Pergunte-me sobre suas finanças.</p>
-        }
-        else
-        {
-            @foreach (var turn in _history)
+            @if (turn.Role == "user")
             {
-                @if (turn.Role == "user")
-                {
-                    <div class="d-flex justify-content-end mb-2">
-                        <div class="bg-primary text-white rounded p-2" style="max-width: 75%;">
-                            @turn.Content
-                        </div>
-                    </div>
-                }
-                else
-                {
-                    <div class="d-flex justify-content-start mb-2">
-                        <div class="bg-light border rounded p-2" style="max-width: 75%; white-space: pre-wrap;">
-                            @turn.Content
-                        </div>
-                    </div>
-                }
+                <div class="d-flex justify-end mb-2">
+                    <MudPaper Elevation="1" Class="pa-2 rounded mud-theme-primary" Style="max-width:75%;word-break:break-word;">
+                        <MudText>@turn.Content</MudText>
+                    </MudPaper>
+                </div>
             }
-            @if (_isLoading)
+            else
             {
-                <div class="d-flex justify-content-start mb-2">
-                    <div class="bg-light border rounded p-2">
-                        <span class="spinner-border spinner-border-sm" role="status" aria-label="Aguardando resposta..."></span>
-                        Aguardando resposta...
+                <div class="d-flex justify-start mb-2">
+                    <div style="max-width:75%;">
+                        <MudPaper Elevation="1" Class="pa-2 rounded" Style="white-space:pre-wrap;word-break:break-word;">
+                            <MudText>@turn.Content</MudText>
+                        </MudPaper>
+                        <MudText Typo="Typo.caption" Color="Color.Secondary" Class="mt-1">
+                            Esta resposta não substitui aconselhamento financeiro profissional.
+                        </MudText>
                     </div>
                 </div>
             }
         }
-    </div>
-</div>
-
-<!-- Input -->
-<div class="d-flex gap-2">
-    <input class="form-control"
-           maxlength="2000"
-           placeholder="Escreva sua pergunta..."
-           @bind="_message"
-           @bind:event="oninput"
-           @onkeydown="HandleKeyDown"
-           disabled="@_isLoading" />
-    <button class="btn btn-primary"
-            @onclick="HandleSend"
-            disabled="@(_isLoading || string.IsNullOrWhiteSpace(_message))">
         @if (_isLoading)
         {
-            <span class="spinner-border spinner-border-sm" role="status"></span>
+            <div class="d-flex justify-start mb-2">
+                <MudProgressCircular Indeterminate="true" Size="Size.Small" Color="Color.Primary" />
+            </div>
         }
-        else
-        {
-            <span>Enviar</span>
-        }
-    </button>
+    }
+</MudPaper>
+
+<!-- Input Area -->
+<div class="d-flex gap-2 align-center">
+    <MudTextField T="string"
+                  @bind-Value="_message"
+                  Placeholder="Escreva sua pergunta..."
+                  MaxLength="2000"
+                  Variant="Variant.Outlined"
+                  Disabled="@_isLoading"
+                  OnKeyDown="HandleKeyDown"
+                  Class="flex-grow-1" />
+    <MudIconButton Icon="@Icons.Material.Filled.Send"
+                   Color="Color.Primary"
+                   OnClick="HandleSend"
+                   Disabled="@(_isLoading || string.IsNullOrWhiteSpace(_message))" />
 </div>
-<div class="text-muted small mt-1">@_message.Length / 2000 caracteres</div>
+<MudText Typo="Typo.caption" Color="Color.Secondary" Class="mt-1">@_message.Length / 2000 caracteres</MudText>
+
+@if (!string.IsNullOrEmpty(_errorMessage))
+{
+    <MudAlert Severity="Severity.Error" Class="mt-2">@_errorMessage</MudAlert>
+}
 
 @code {
     private string _message = string.Empty;

@@ -1,138 +1,64 @@
 @page "/transactions"
 @using FinanIA.Web.Services
 @inject TransactionService TransactionService
+@inject IDialogService DialogService
+@inject ISnackbar Snackbar
 @attribute [Microsoft.AspNetCore.Authorization.Authorize]
 
 <PageTitle>Transações</PageTitle>
 
-<h1>Transações</h1>
+<MudText Typo="Typo.h4" Class="mb-4">Transações</MudText>
 
-@if (!string.IsNullOrEmpty(_successMessage))
-{
-    <div class="alert alert-success" role="alert">@_successMessage</div>
-}
-@if (!string.IsNullOrEmpty(_errorMessage))
-{
-    <div class="alert alert-danger" role="alert">@_errorMessage</div>
-}
+<MudButton Variant="Variant.Filled" Color="Color.Primary" StartIcon="@Icons.Material.Filled.Add"
+           OnClick="OpenCreateDialog" Class="mb-4">
+    Nova Transação
+</MudButton>
 
-<!-- New / Edit Transaction Form -->
-<div class="card mb-4">
-    <div class="card-header">@(_editingId.HasValue ? "Editar Transação" : "Nova Transação")</div>
-    <div class="card-body">
-        <div class="row g-3">
-            <div class="col-md-5">
-                <label class="form-label">Descrição</label>
-                <input class="form-control" @bind="_description" placeholder="Ex: Salário, Aluguel..." />
-            </div>
-            <div class="col-md-2">
-                <label class="form-label">Valor (R$)</label>
-                <input type="number" class="form-control" @bind="_amount" min="0.01" step="0.01" />
-            </div>
-            <div class="col-md-2">
-                <label class="form-label">Data</label>
-                <input type="date" class="form-control" @bind="_date" />
-            </div>
-            <div class="col-md-2">
-                <label class="form-label">Tipo</label>
-                <select class="form-select" @bind="_type">
-                    <option value="Income">Receita</option>
-                    <option value="Expense">Despesa</option>
-                </select>
-            </div>
-            <div class="col-md-1 d-flex align-items-end gap-1">
-                <button class="btn btn-primary" @onclick="HandleSubmit" disabled="@_isLoading">
-                    @(_isLoading ? "..." : (_editingId.HasValue ? "Salvar" : "Adicionar"))
-                </button>
-                @if (_editingId.HasValue)
-                {
-                    <button class="btn btn-secondary" @onclick="CancelEdit">Cancelar</button>
-                }
-            </div>
-        </div>
-    </div>
-</div>
-
-<!-- Transactions Table -->
 @if (_isLoadingList)
 {
-    <p>Carregando...</p>
+    <MudProgressLinear Indeterminate="true" Color="Color.Primary" />
 }
 else if (_transactions.Count == 0)
 {
-    <p class="text-muted">Nenhuma transação registrada.</p>
+    <MudText Color="Color.Secondary">Nenhuma transação encontrada.</MudText>
 }
 else
 {
-    <table class="table table-striped">
-        <thead>
-            <tr>
-                <th>Data</th>
-                <th>Descrição</th>
-                <th>Tipo</th>
-                <th class="text-end">Valor</th>
-                <th></th>
-            </tr>
-        </thead>
-        <tbody>
-            @foreach (var tx in _transactions)
-            {
-                <tr>
-                    <td>@tx.Date.ToString("dd/MM/yyyy")</td>
-                    <td>@tx.Description</td>
-                    <td>
-                        <span class="badge @(tx.Type == "Income" ? "bg-success" : "bg-danger")">
-                            @(tx.Type == "Income" ? "Receita" : "Despesa")
-                        </span>
-                    </td>
-                    <td class="text-end">R$ @tx.Amount.ToString("N2")</td>
-                    <td class="text-end">
-                        <button class="btn btn-sm btn-outline-primary me-1" @onclick="() => StartEdit(tx)">Editar</button>
-                        <button class="btn btn-sm btn-outline-danger" @onclick="() => ConfirmDelete(tx.Id)">Excluir</button>
-                    </td>
-                </tr>
-            }
-        </tbody>
-    </table>
-}
-
-<!-- Delete confirmation modal -->
-@if (_confirmDeleteId.HasValue)
-{
-    <div class="modal d-block" tabindex="-1" style="background:rgba(0,0,0,.5)">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title">Confirmar exclusão</h5>
-                </div>
-                <div class="modal-body">
-                    <p>Deseja excluir permanentemente esta transação?</p>
-                </div>
-                <div class="modal-footer">
-                    <button class="btn btn-secondary" @onclick="CancelDelete">Cancelar</button>
-                    <button class="btn btn-danger" @onclick="ExecuteDelete" disabled="@_isLoading">Excluir</button>
-                </div>
-            </div>
-        </div>
-    </div>
+    <MudTable Items="_transactions" Hover="true" Breakpoint="Breakpoint.Sm" Dense="true">
+        <HeaderContent>
+            <MudTh>Descrição</MudTh>
+            <MudTh>Valor</MudTh>
+            <MudTh>Data</MudTh>
+            <MudTh>Tipo</MudTh>
+            <MudTh></MudTh>
+        </HeaderContent>
+        <RowTemplate>
+            <MudTd DataLabel="Descrição">
+                <span style="display:block;max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap"
+                      title="@context.Description">
+                    @context.Description
+                </span>
+            </MudTd>
+            <MudTd DataLabel="Valor">R$ @context.Amount.ToString("N2")</MudTd>
+            <MudTd DataLabel="Data">@context.Date.ToString("dd/MM/yyyy")</MudTd>
+            <MudTd DataLabel="Tipo">
+                <MudChip T="string" Color="@(context.Type == "Income" ? Color.Success : Color.Error)" Size="Size.Small">
+                    @(context.Type == "Income" ? "Receita" : "Despesa")
+                </MudChip>
+            </MudTd>
+            <MudTd>
+                <MudIconButton Icon="@Icons.Material.Filled.Edit" Size="Size.Small" Color="Color.Primary"
+                               OnClick="() => OpenEditDialog(context)" />
+                <MudIconButton Icon="@Icons.Material.Filled.Delete" Size="Size.Small" Color="Color.Error"
+                               OnClick="() => ConfirmDeleteAsync(context.Id)" />
+            </MudTd>
+        </RowTemplate>
+    </MudTable>
 }
 
 @code {
     private List<TransactionResponse> _transactions = [];
     private bool _isLoadingList = true;
-    private bool _isLoading;
-    private string? _successMessage;
-    private string? _errorMessage;
-
-    // Form fields
-    private string _description = string.Empty;
-    private decimal _amount;
-    private DateOnly _date = DateOnly.FromDateTime(DateTime.Today);
-    private string _type = "Income";
-    private Guid? _editingId;
-
-    // Delete confirmation
-    private Guid? _confirmDeleteId;
 
     protected override async Task OnInitializedAsync()
     {
@@ -146,92 +72,79 @@ else
         _isLoadingList = false;
     }
 
-    private async Task HandleSubmit()
+    private async Task OpenCreateDialog()
     {
-        _isLoading = true;
-        _successMessage = null;
-        _errorMessage = null;
+        var model = new TransactionFormModel { Date = DateOnly.FromDateTime(DateTime.Today) };
+        var result = await OpenFormDialog(model);
+        if (result is null) return;
 
-        if (_editingId.HasValue)
-        {
-            var (result, error) = await TransactionService.UpdateTransactionAsync(
-                _editingId.Value, _description, _amount, _date, _type);
-            if (error is not null)
-                _errorMessage = error;
-            else
-            {
-                _successMessage = "Transação atualizada com sucesso!";
-                CancelEdit();
-                await LoadTransactionsAsync();
-            }
-        }
+        var (_, error) = await TransactionService.CreateTransactionAsync(
+            result.Description, result.Amount, result.Date!.Value, result.Type);
+
+        if (error is not null)
+            Snackbar.Add(error, Severity.Error);
         else
         {
-            var (result, error) = await TransactionService.CreateTransactionAsync(
-                _description, _amount, _date, _type);
-            if (error is not null)
-                _errorMessage = error;
-            else
-            {
-                _successMessage = "Transação registrada com sucesso!";
-                ResetForm();
-                await LoadTransactionsAsync();
-            }
-        }
-
-        _isLoading = false;
-    }
-
-    private void StartEdit(TransactionResponse tx)
-    {
-        _editingId = tx.Id;
-        _description = tx.Description;
-        _amount = tx.Amount;
-        _date = tx.Date;
-        _type = tx.Type;
-        _successMessage = null;
-        _errorMessage = null;
-    }
-
-    private void CancelEdit()
-    {
-        _editingId = null;
-        ResetForm();
-    }
-
-    private void ResetForm()
-    {
-        _description = string.Empty;
-        _amount = 0;
-        _date = DateOnly.FromDateTime(DateTime.Today);
-        _type = "Income";
-    }
-
-    private void ConfirmDelete(Guid id)
-    {
-        _confirmDeleteId = id;
-        _successMessage = null;
-        _errorMessage = null;
-    }
-
-    private void CancelDelete() => _confirmDeleteId = null;
-
-    private async Task ExecuteDelete()
-    {
-        if (!_confirmDeleteId.HasValue) return;
-
-        _isLoading = true;
-        var (success, error) = await TransactionService.DeleteTransactionAsync(_confirmDeleteId.Value);
-        _confirmDeleteId = null;
-
-        if (!success)
-            _errorMessage = error ?? "Falha ao excluir transação.";
-        else
-        {
-            _successMessage = "Transação excluída com sucesso!";
+            Snackbar.Add("Transação registrada com sucesso!", Severity.Success);
             await LoadTransactionsAsync();
         }
+    }
 
-        _isLoading = false;
+    private async Task OpenEditDialog(TransactionResponse tx)
+    {
+        var model = new TransactionFormModel
+        {
+            Id = tx.Id,
+            Description = tx.Description,
+            Amount = tx.Amount,
+            Date = tx.Date,
+            Type = tx.Type
+        };
+
+        var result = await OpenFormDialog(model);
+        if (result is null) return;
+
+        var (_, error) = await TransactionService.UpdateTransactionAsync(
+            tx.Id, result.Description, result.Amount, result.Date!.Value, result.Type);
+
+        if (error is not null)
+            Snackbar.Add(error, Severity.Error);
+        else
+        {
+            Snackbar.Add("Transação atualizada com sucesso!", Severity.Success);
+            await LoadTransactionsAsync();
+        }
+    }
+
+    private async Task<TransactionFormModel?> OpenFormDialog(TransactionFormModel initialModel)
+    {
+        var parameters = new DialogParameters<TransactionFormDialog>
+        {
+            { x => x.InitialModel, initialModel }
+        };
+        var dialog = await DialogService.ShowAsync<TransactionFormDialog>(string.Empty, parameters);
+        var result = await dialog.Result;
+        if (result is null || result.Canceled) return null;
+        return result.Data as TransactionFormModel;
+    }
+
+    private async Task ConfirmDeleteAsync(Guid id)
+    {
+        var confirmed = await DialogService.ShowMessageBoxAsync(
+            "Confirmar exclusão",
+            "Deseja excluir permanentemente esta transação?",
+            yesText: "Excluir",
+            cancelText: "Cancelar");
+
+        if (confirmed != true) return;
+
+        var (success, error) = await TransactionService.DeleteTransactionAsync(id);
+        if (!success)
+            Snackbar.Add(error ?? "Falha ao excluir transação.", Severity.Error);
+        else
+        {
+            Snackbar.Add("Transação excluída com sucesso!", Severity.Success);
+            await LoadTransactionsAsync();
+        }
     }
 }

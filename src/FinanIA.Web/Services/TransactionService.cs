@@ -16,6 +16,15 @@ public record BalanceResponse(
     decimal TotalExpense,
     decimal Balance);
 
+public record TransactionFormModel
+{
+    public Guid? Id { get; set; }
+    public string Description { get; set; } = string.Empty;
+    public decimal Amount { get; set; }
+    public DateOnly? Date { get; set; }
+    public string Type { get; set; } = "Income";
+}
+
 public class TransactionService
 {
     private readonly HttpClient _http;

@@ -1,0 +1,83 @@
+@using MudBlazor
+@using FinanIA.Web.Services
+
+<MudDialog>
+
+    <TitleContent>
+        <MudText Typo="Typo.h6">@(InitialModel.Id.HasValue ? "Editar Transação" : "Nova Transação")</MudText>
+    </TitleContent>
+    <DialogContent>
+        <MudForm @ref="_form" @bind-IsValid="_isValid">
+            <MudTextField T="string"
+                          Label="Descrição"
+                          @bind-Value="_model.Description"
+                          Required="true"
+                          RequiredError="A descrição é obrigatória."
+                          MaxLength="500"
+                          Placeholder="Ex: Salário, Aluguel..." />
+
+            <MudNumericField T="decimal"
+                             Label="Valor (R$)"
+                             @bind-Value="_model.Amount"
+                             Required="true"
+                             RequiredError="O valor é obrigatório."
+                             Min="0.01m"
+                             Format="N2"
+                             Class="mt-3" />
+
+            <MudDatePicker Label="Data"
+                           @bind-Date="_pickerDate"
+                           Required="true"
+                           RequiredError="A data é obrigatória."
+                           DateFormat="dd/MM/yyyy"
+                           Class="mt-3" />
+
+            <MudSelect T="string"
+                       Label="Tipo"
+                       @bind-Value="_model.Type"
+                       Required="true"
+                       RequiredError="O tipo é obrigatório."
+                       Class="mt-3">
+                <MudSelectItem Value="@("Income")">Receita</MudSelectItem>
+                <MudSelectItem Value="@("Expense")">Despesa</MudSelectItem>
+            </MudSelect>
+        </MudForm>
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="Cancel">Cancelar</MudButton>
+        <MudButton Color="Color.Primary" Variant="Variant.Filled" OnClick="Submit" Disabled="@(!_isValid)">
+            @(InitialModel.Id.HasValue ? "Salvar" : "Adicionar")
+        </MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [CascadingParameter] IMudDialogInstance MudDialog { get; set; } = default!;
+    [Parameter] public TransactionFormModel InitialModel { get; set; } = new();
+
+    private MudForm _form = default!;
+    private bool _isValid;
+    private TransactionFormModel _model = new();
+    private DateTime? _pickerDate;
+
+    protected override void OnParametersSet()
+    {
+        _model = InitialModel with { };
+        _pickerDate = InitialModel.Date.HasValue
+            ? InitialModel.Date.Value.ToDateTime(TimeOnly.MinValue)
+            : DateTime.Today;
+    }
+
+    private void Cancel() => MudDialog.Cancel();
+
+    private async Task Submit()
+    {
+        await _form.Validate();
+        if (!_isValid) return;
+
+        if (_pickerDate.HasValue)
+            _model = _model with { Date = DateOnly.FromDateTime(_pickerDate.Value) };
+
+        MudDialog.Close(DialogResult.Ok(_model));
+    }
+}

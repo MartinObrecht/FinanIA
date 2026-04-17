@@ -3,49 +3,52 @@
 @using FinanIA.Web.Services
 @inject AuthService AuthService
 @inject NavigationManager NavigationManager
+@inject ISnackbar Snackbar
 
 <PageTitle>Entrar</PageTitle>
 
-<h1>Entrar</h1>
+<MudContainer MaxWidth="MaxWidth.Small" Class="mt-8">
+    <MudText Typo="Typo.h4" GutterBottom="true">Entrar</MudText>
 
-<EditForm Model="@_model" OnValidSubmit="HandleValidSubmit">
-    <DataAnnotationsValidator />
+    <MudForm @ref="_form" Model="@_model">
+        <MudTextField T="string" Label="E-mail" @bind-Value="_model.Email" InputType="InputType.Email"
+                      Validation="@(new EmailAddressAttribute() { ErrorMessage = "Formato de e-mail inválido." })" Required="true"
+                      RequiredError="E-mail é obrigatório." Class="mb-4" />
 
-    <div class="mb-3">
-        <label for="email" class="form-label">E-mail</label>
-        <InputText id="email" class="form-control" @bind-Value="_model.Email" />
-        <ValidationMessage For="() => _model.Email" />
-    </div>
+        <MudTextField T="string" Label="Senha" @bind-Value="_model.Password" InputType="InputType.Password"
+                      Required="true" RequiredError="Senha é obrigatória." Class="mb-4" />
 
-    <div class="mb-3">
-        <label for="password" class="form-label">Senha</label>
-        <InputText id="password" type="password" class="form-control" @bind-Value="_model.Password" />
-        <ValidationMessage For="() => _model.Password" />
-    </div>
+        <MudButton Variant="Variant.Filled" Color="Color.Primary" Disabled="@_isLoading" OnClick="HandleSubmit"
+                   FullWidth="true">
+            @if (_isLoading)
+            {
+                <MudProgressCircular Size="Size.Small" Indeterminate="true" Class="mr-2" />
+                <span>Aguarde...</span>
+            }
+            else
+            {
+                <span>Entrar</span>
+            }
+        </MudButton>
+    </MudForm>
 
-    @if (!string.IsNullOrEmpty(_errorMessage))
-    {
-        <div class="alert alert-danger" role="alert">@_errorMessage</div>
-    }
-
-    <button type="submit" class="btn btn-primary" disabled="@_isLoading">
-        @(_isLoading ? "Aguarde..." : "Entrar")
-    </button>
-</EditForm>
-
-<p class="mt-3">
-    Não tem conta? <a href="/register">Criar conta</a>
-</p>
+    <MudText Class="mt-4">
+        Não tem conta? <MudLink Href="/register">Criar conta</MudLink>
+    </MudText>
+</MudContainer>
 
 @code {
+    private MudForm _form = default!;
     private readonly LoginModel _model = new();
-    private string? _errorMessage;
     private bool _isLoading;
 
-    private async Task HandleValidSubmit()
+    private async Task HandleSubmit()
     {
+        await _form.Validate();
+        if (!_form.IsValid)
+            return;
+
         _isLoading = true;
-        _errorMessage = null;
 
         var currentPath = new Uri(NavigationManager.Uri).PathAndQuery;
         var returnUrl = currentPath == "/login" ? "/" : currentPath;
@@ -54,7 +57,7 @@
 
         if (!success)
         {
-            _errorMessage = error ?? "E-mail ou senha incorretos.";
+            Snackbar.Add(error ?? "E-mail ou senha incorretos.", Severity.Error);
             _isLoading = false;
         }
     }
